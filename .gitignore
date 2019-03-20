@@ -1,0 +1,7 @@
+/.classpath
+/.project
+/.settings/
+/db/
+/target/
+/log/
+.gitignore
