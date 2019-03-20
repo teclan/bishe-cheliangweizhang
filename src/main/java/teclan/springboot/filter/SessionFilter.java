@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 
 @Component
 public class SessionFilter implements Filter {
@@ -38,8 +39,9 @@ public class SessionFilter implements Filter {
         if ( !"/user/login".equals(httpServletRequest.getRequestURI()) && (token == null || "".equals(token.toString()) || !token.equals(realToken) )) {
             LOGGER.error("未认证");
             httpServletResponse.setStatus(401);
+            jdbcTemplate.update("update user_info set token=?,last_time=? where code=?",null,new Date(),user);
         }else {
-
+            jdbcTemplate.update("update user_info set last_time=? where code=?",new Date(),user);
             filterChain.doFilter(servletRequest,servletResponse);
         }
     }
