@@ -1,8 +1,8 @@
 datasource:
   driver-class-name: com.mysql.cj.jdbc.Driver
-  url: jdbc:mysql://localhost:3306/teclan?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC
+  url: jdbc:mysql://rm-bp1k0ef85lmpf2821zo.mysql.rds.aliyuncs.com/cheliangweizhang?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=UTC
   username: root
-  password: root
+  password: Ali123!@#
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
