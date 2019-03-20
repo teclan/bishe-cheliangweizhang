@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionUtils {
+public class TokenUtisl {
+     public static  SnowFlake snowFlake = new SnowFlake(2, 3);
 
     public static Map<String,Object> TOKENS = new ConcurrentHashMap<String,Object>();
 
@@ -18,5 +19,9 @@ public class SessionUtils {
 
     public static Object get(String user){
        return  TOKENS.get(user);
+    }
+
+    public static synchronized  String get(){
+       return  String.valueOf(snowFlake.nextId());
     }
 }
