@@ -1,5 +1,6 @@
 package teclan.springboot.controller;
 
+import java.sql.PreparedStatement;
 import java.util.Date;
 import java.util.Map;
 
@@ -14,7 +15,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import teclan.springboot.utils.Objects;
 import teclan.springboot.utils.ResultUtils;
+import teclan.springboot.utils.SqlUtils;
 import teclan.springboot.utils.TokenUtisl;
 
 @RestController
@@ -86,6 +89,26 @@ public class UserController {
         }
         jdbcTemplate.update("insert into user_info (`code`,`name`,`id_card`,``password`,`role`) values (?,?,?,?,?);", code, name, idCard, password, "general");
         return ResultUtils.get("注册成功", null);
+    }
+
+
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, String code, String name, String idCard, String phone, String password) {
+        return register(servletRequest,servletResponse,code,name,idCard,phone,password);
+    }
+
+    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+    public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse, String code) {
+        jdbcTemplate.update("delete from user_info where code=?", code);
+        return ResultUtils.get("删除成功", null);
+    }
+
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse,String code, Map<String,Object> data) {
+        Object[] values = SqlUtils.getValuesForUpdate(data);
+        values = Objects.merge(values,new Object[]{code});
+        jdbcTemplate.update(String.format("update user_info set %s where code=?"),values);
+        return ResultUtils.get("修改成功", null);
     }
 
 }
