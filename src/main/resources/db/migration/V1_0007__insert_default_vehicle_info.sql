@@ -1,0 +1,6 @@
+insert into vehicle_info (`engine_no`,`frame`,`qualified_no`,`vehicle_license`,`license_plate`,`register_at`,`owner`) values ('6WF1413989','1G1BL52P7TR115520','FAF1413974','9F14139A','京A88888','2011-08-10',5);
+insert into vehicle_info (`engine_no`,`frame`,`qualified_no`,`vehicle_license`,`license_plate`,`register_at`,`owner`) values ('5WF1413989','1G1BL52P7TR115521','FBF1413974','8F14139A','京A77777','2010-08-10',6);
+insert into vehicle_info (`engine_no`,`frame`,`qualified_no`,`vehicle_license`,`license_plate`,`register_at`,`owner`) values ('4WF1413989','1G1BL52P7TR115522','FCF1413974','7F14139A','京A66666','2009-08-10',7);
+insert into vehicle_info (`engine_no`,`frame`,`qualified_no`,`vehicle_license`,`license_plate`,`register_at`,`owner`) values ('3WF1413989','1G1BL52P7TR115523','FDF1413974','6F14139A','京A55555','2008-08-10',8);
+insert into vehicle_info (`engine_no`,`frame`,`qualified_no`,`vehicle_license`,`license_plate`,`register_at`,`owner`) values ('2WF1413989','1G1BL52P7TR115524','FEF1413974','5F14139A','京A44444','2007-08-10',9);
+insert into vehicle_info (`engine_no`,`frame`,`qualified_no`,`vehicle_license`,`license_plate`,`register_at`,`owner`) values ('1WF1413989','1G1BL52P7TR115525','FFF1413974','4F14139A','京A33333','2006-08-10',9);
