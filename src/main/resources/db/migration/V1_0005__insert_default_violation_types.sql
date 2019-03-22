@@ -1,0 +1,13 @@
+insert into violation_type (id,type_name) values (1,'闯红灯');
+insert into violation_type (id,type_name) values (2,'无证驾驶');
+insert into violation_type (id,type_name) values (3,'超载或超员');
+insert into violation_type (id,type_name) values (4,'使用伪造驾驶证');
+insert into violation_type (id,type_name) values (5,'超速行驶');
+insert into violation_type (id,type_name) values (6,'驾驶拼装或报废机动车');
+insert into violation_type (id,type_name) values (7,'记满12分继续驾车');
+insert into violation_type (id,type_name) values (8,'酒驾');
+insert into violation_type (id,type_name) values (9,'醉驾');
+insert into violation_type (id,type_name) values (10,'肇事后逃逸');
+insert into violation_type (id,type_name) values (11,'未礼让行人');
+insert into violation_type (id,type_name) values (12,'驾驶过程手持电话');
+insert into violation_type (id,type_name) values (13,'未系安全带');
