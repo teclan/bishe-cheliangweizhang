@@ -15,7 +15,7 @@ import java.util.Map;
  * 违章类型查询
  */
 @RestController
-@RequestMapping("/ViolationType")
+@RequestMapping("/violationType")
 public class ViolationTypeController {
     @Resource
     private JdbcTemplate jdbcTemplate;

@@ -86,7 +86,7 @@ public class Objects {
         return keys;
     }
 
-    public static String Joiner(String separator, List<String> collection) {
+    public static String joiner(String separator, List<String> collection) {
 
         if (collection.isEmpty() || collection.size() == 0) {
             return "";
@@ -107,7 +107,7 @@ public class Objects {
         return result.substring(0, result.length() - separator.length());
     }
 
-    public static String Joiner(String separator, String[] collection) {
+    public static String joiner(String separator, String[] collection) {
 
         if (collection.length == 0) {
             return "";
@@ -127,7 +127,7 @@ public class Objects {
         return result.substring(0, result.length() - separator.length());
     }
 
-    public static String Joiner(String separator, JSONArray collection) {
+    public static String joiner(String separator, JSONArray collection) {
 
         if (collection.size() == 0) {
             return "";
@@ -147,7 +147,7 @@ public class Objects {
         return result.substring(0, result.length() - separator.length());
     }
 
-    public static String Joiner(String separator, Set<String> collection) {
+    public static String joiner(String separator, Set<String> collection) {
 
         if (collection.isEmpty() || collection.size() == 0) {
             return "";

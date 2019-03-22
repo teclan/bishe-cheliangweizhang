@@ -1,6 +1,5 @@
 package teclan.springboot.controller;
 
-import java.sql.PreparedStatement;
 import java.util.Date;
 import java.util.Map;
 
@@ -10,7 +9,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
-import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -68,8 +66,6 @@ public class UserController {
     public JSONObject register(ServletRequest servletRequest, ServletResponse servletResponse, String code, String name, String idCard, String phone, String password) {
 
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        httpServletResponse.setStatus(401);
-
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where code='%s", code), Integer.class);
         if (count > 0) {
             httpServletResponse.setStatus(403);
@@ -105,9 +101,9 @@ public class UserController {
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse,String code, Map<String,Object> data) {
-        Object[] values = SqlUtils.getValuesForUpdate(data);
+        Object[] values = SqlUtils.getValues(data);
         values = Objects.merge(values,new Object[]{code});
-        jdbcTemplate.update(String.format("update user_info set %s where code=?"),values);
+        jdbcTemplate.update(String.format("update user_info set %s where code=?",SqlUtils.getSqlForUpdate(data)),values);
         return ResultUtils.get("修改成功", null);
     }
 
