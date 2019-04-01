@@ -5,7 +5,7 @@ import java.util.Map;
 public class SqlUtils {
 
     public static String getSqlForUpdate( Map<String,Object> data){
-         return Objects.joiner("=?",data.keySet());
+         return Objects.joiner("=?,",data.keySet())+"=? ";
     }
 
     public static String getSqlForInsert( Map<String,Object> data){

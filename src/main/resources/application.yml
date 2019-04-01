@@ -14,3 +14,6 @@ activemq:
   pool:
     enabled: true
     max-connections: 5
+
+server:
+  port: 9090
