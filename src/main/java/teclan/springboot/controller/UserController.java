@@ -83,7 +83,7 @@ public class UserController {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
-        jdbcTemplate.update("insert into user_info (`code`,`name`,`id_card`,``password`,`role`) values (?,?,?,?,?);", code, name, idCard, password, "general");
+        jdbcTemplate.update("insert into user_info (`code`,`name`,`id_card`,``password`,`role`,`create_time`) values (?,?,?,?,?,?);", code, name, idCard, password, "general",new Date());
         return ResultUtils.get("注册成功", null);
     }
 
@@ -106,5 +106,13 @@ public class UserController {
         jdbcTemplate.update(String.format("update user_info set %s where code=?",SqlUtils.getSqlForUpdate(data)),values);
         return ResultUtils.get("修改成功", null);
     }
+
+    @RequestMapping(value = "/page", method = RequestMethod.POST)
+    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse,String name,String idCard,String phone) {
+
+
+        return ResultUtils.get("修改成功", null);
+    }
+
 
 }

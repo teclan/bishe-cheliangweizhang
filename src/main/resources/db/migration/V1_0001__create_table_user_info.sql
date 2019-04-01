@@ -11,7 +11,8 @@ CREATE TABLE `user_info` (
   `limited_period_to` datetime comment '证件有效期截止时间',
   `surplus` int(11) comment '剩余分数',
   `token` varchar(32) comment 'token',
-  `last_time` datetime comment '最后操作时间'
+  `last_time` datetime comment '最后操作时间',
+  `create_time` datetime comment '创建时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
