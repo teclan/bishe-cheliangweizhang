@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import teclan.springboot.utils.Objects;
+import teclan.springboot.utils.PagesUtils;
 import teclan.springboot.utils.ResultUtils;
 import teclan.springboot.utils.SqlUtils;
 
@@ -13,6 +14,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,7 +34,7 @@ public class ViolationController {
         if (count > 0) {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("添加失败，车牌号重复", data);
-        }else {
+        } else {
             Object[] values = SqlUtils.getValues(data);
             jdbcTemplate.update(String.format("insert into vehicle_info (%s) values (%s)", SqlUtils.getSqlForInsert(data), SqlUtils.getFillString(data, "?")), values);
             return ResultUtils.get("添加成功", data);
@@ -49,7 +51,7 @@ public class ViolationController {
     public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse, String id, Map<String, Object> data) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         String licensePlate = data.containsKey("license_plate") ? data.get("license_plate").toString() : "";
-        int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s' and id<>%s", licensePlate,id), Integer.class);
+        int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s' and id<>%s", licensePlate, id), Integer.class);
         if (count > 0) {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("修改失败，车牌号重复", data);
@@ -71,4 +73,14 @@ public class ViolationController {
         Map data = jdbcTemplate.queryForMap("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where id=?", id);
         return ResultUtils.get("查询成功", data);
     }
+
+    @RequestMapping(value = "/page", method = RequestMethod.POST)
+    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String keyword,String orderBy,String sort,int currentPage,int pageSize) {
+        String countSql="SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE CONCAT('%',%s,'%')";
+        String querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE CONCAT('%',%s,'%') ORDER BY %s %s limit %s,%s";
+        int totals = jdbcTemplate.queryForObject(String.format(countSql,keyword),Integer.class);
+        List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,keyword,orderBy,sort,PagesUtils.getOffset(currentPage,totals),pageSize));
+        return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage,pageSize,totals));
+    }
+
 }
