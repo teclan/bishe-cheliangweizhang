@@ -14,6 +14,7 @@ import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -79,8 +80,13 @@ public class ViolationController {
         String countSql="SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE CONCAT('%',%s,'%')";
         String querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE CONCAT('%',%s,'%') ORDER BY %s %s limit %s,%s";
         int totals = jdbcTemplate.queryForObject(String.format(countSql,keyword),Integer.class);
-        List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,keyword,orderBy,sort,PagesUtils.getOffset(currentPage,totals),pageSize));
-        return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage,pageSize,totals));
+
+        if(totals<1){
+            return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage,pageSize,totals));
+        }else {
+            List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,keyword,orderBy,sort,PagesUtils.getOffset(currentPage,totals),pageSize));
+            return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage,pageSize,totals));
+        }
     }
 
 }

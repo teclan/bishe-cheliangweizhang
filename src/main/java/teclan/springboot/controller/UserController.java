@@ -1,6 +1,8 @@
 package teclan.springboot.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -9,14 +11,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mysql.cj.util.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import teclan.springboot.utils.Objects;
-import teclan.springboot.utils.ResultUtils;
-import teclan.springboot.utils.SqlUtils;
-import teclan.springboot.utils.TokenUtisl;
+import teclan.springboot.utils.*;
 
 @RestController
 @RequestMapping("/user")
@@ -108,10 +108,31 @@ public class UserController {
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse,String name,String idCard,String phone) {
+    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse,String name,String idCard,String phone,String orderBy,String sort,int currentPage,int pageSize) {
 
+        String countSql="SELECT count(*) FROM user_info where %s";
+        String querySql = "SELECT * FROM vehicle_info where %s ORDER BY %s %s limit %s,%s";
 
-        return ResultUtils.get("修改成功", null);
+        StringBuilder sb =new StringBuilder(" 1=1");
+
+        if(StringUtils.isNullOrEmpty(name)){
+            sb.append(String.format(" and name LIKE CONCAT('%',%s,'%') ",name));
+        }
+        if(StringUtils.isNullOrEmpty(idCard)){
+            sb.append(String.format(" and idCard LIKE CONCAT('%',%s,'%') ",idCard));
+        }
+        if(StringUtils.isNullOrEmpty(phone)){
+            sb.append(String.format(" and phone LIKE CONCAT('%',%s,'%') ",phone));
+        }
+
+        int totals = jdbcTemplate.queryForObject(String.format(countSql,sb.toString()),Integer.class);
+
+        if(totals<1){
+            return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage,pageSize,totals));
+        }else {
+            List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,sb.toString(),orderBy,sort, PagesUtils.getOffset(currentPage,totals),pageSize));
+            return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage,pageSize,totals));
+        }
     }
 
 
