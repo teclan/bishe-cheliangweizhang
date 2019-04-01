@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 违章类型查询
+ * 违章类型
  */
 @RestController
 @RequestMapping("/violationType")

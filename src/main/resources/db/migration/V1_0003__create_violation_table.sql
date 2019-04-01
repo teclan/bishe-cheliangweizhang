@@ -7,5 +7,6 @@ create table violation(
   `deduction_score` int(11) null comment '扣除分数',
   `deduction_amount` DECIMAL(6,2) null comment '罚款金额',
   `police` varchar(32) comment '现场警员编号',
-  `punisher` varchar(32) comment '处罚人编号'
+  `punisher` varchar(32) comment '处罚人编号',
+  `create_time` datetime comment '创建时间'
 )ENGINE=InnoDB DEFAULT CHARSET=utf8 comment '违章记录';

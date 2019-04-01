@@ -15,6 +15,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ public class VehicleController {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("添加失败，车牌号重复", data);
         } else {
+            data.put("create_time",new Date());
             Object[] values = SqlUtils.getValues(data);
             jdbcTemplate.update(String.format("insert into vehicle_info (%s) values (%s)", SqlUtils.getSqlForInsert(data), SqlUtils.getFillString(data, "?")), values);
             return ResultUtils.get("添加成功", data);
