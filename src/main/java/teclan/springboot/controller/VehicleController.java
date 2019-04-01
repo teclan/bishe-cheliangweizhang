@@ -22,8 +22,8 @@ import java.util.Map;
  * 车辆信息
  */
 @RestController
-@RequestMapping("/violation")
-public class ViolationController {
+@RequestMapping("/vehicle")
+public class VehicleController {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
