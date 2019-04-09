@@ -54,13 +54,13 @@ public class DatabaseFactory {
     }
 
 
-    @Bean(name = "sqlSessionFactory")
-    public SqlSessionFactory getSqlSessionFactory() throws Exception {
-        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
-        sqlSessionFactoryBean.setDataSource(getDataSource());
+        @Bean(name = "sqlSessionFactory")
+        public SqlSessionFactory getSqlSessionFactory() throws Exception {
+            SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+            sqlSessionFactoryBean.setDataSource(getDataSource());
 
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        sqlSessionFactoryBean.setMapperLocations(resolver.getResources(mapperLocations));
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            sqlSessionFactoryBean.setMapperLocations(resolver.getResources(mapperLocations));
 
         return sqlSessionFactoryBean.getObject();
     }

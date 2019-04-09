@@ -35,8 +35,8 @@ public class SomeCheckServer  implements CommandLineRunner {
      */
     @Override
     public void run(String... args) throws Exception {
-        LOGGER.info("\n程序自检....\n");
-
+        LOGGER.info("\n\n程序自检开始...................\n");
         databaseCheck.run();
+        LOGGER.info("\n\n程序自检结束...................\n");
     }
 }

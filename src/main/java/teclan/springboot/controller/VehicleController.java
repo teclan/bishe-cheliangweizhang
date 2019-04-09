@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import teclan.springboot.utils.Objects;
 import teclan.springboot.utils.PagesUtils;
@@ -29,18 +30,15 @@ public class VehicleController {
     private JdbcTemplate jdbcTemplate;
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, Map<String, Object> data) {
+    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, @RequestParam("engine_no")String engineNo, @RequestParam("frame")String frame,@RequestParam("qualified_no")String qualifiedNo,@RequestParam("vehicle_license")String vehicleLicense,@RequestParam("license_plate")String licensePlate,@RequestParam(value = "owner",required = false)String owner) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        String licensePlate = data.containsKey("license_plate") ? data.get("license_plate").toString() : "";
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s'", licensePlate), Integer.class);
         if (count > 0) {
             httpServletResponse.setStatus(403);
-            return ResultUtils.get("添加失败，车牌号重复", data);
+            return ResultUtils.get("添加失败，车牌号重复", licensePlate);
         } else {
-            data.put("create_time",new Date());
-            Object[] values = SqlUtils.getValues(data);
-            jdbcTemplate.update(String.format("insert into vehicle_info (%s) values (%s)", SqlUtils.getSqlForInsert(data), SqlUtils.getFillString(data, "?")), values);
-            return ResultUtils.get("添加成功", data);
+            jdbcTemplate.update("insert into vehicle_info (engine_no,frame,qualified_no,vehicle_license,license_plate,owner,register_at ) values (?,?,?,?,?,?,?)",engineNo,frame,qualifiedNo,vehicleLicense,licensePlate ,owner, new Date());
+            return ResultUtils.get("添加成功", licensePlate);
         }
     }
 
@@ -51,18 +49,22 @@ public class VehicleController {
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse, String id, Map<String, Object> data) {
+    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse, String id,  @RequestParam("engine_no")String engineNo, @RequestParam("frame")String frame,@RequestParam("qualified_no")String qualifiedNo,@RequestParam("vehicle_license")String vehicleLicense,@RequestParam("license_plate")String licensePlate,@RequestParam(value = "owner")String owner) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        String licensePlate = data.containsKey("license_plate") ? data.get("license_plate").toString() : "";
+
+        if(Objects.isNull(id)){
+            httpServletResponse.setStatus(500);
+            return ResultUtils.get("未指定记录ID",  null);
+        }
+
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s' and id<>%s", licensePlate, id), Integer.class);
         if (count > 0) {
             httpServletResponse.setStatus(403);
-            return ResultUtils.get("修改失败，车牌号重复", data);
+            return ResultUtils.get("修改失败，车牌号重复", licensePlate);
         }
-        Object[] values = SqlUtils.getValues(data);
-        values = Objects.merge(values, new Object[]{id});
-        jdbcTemplate.update(String.format("update vehicle_info set %s where id=?"), values);
-        return ResultUtils.get("修改成功", null);
+        jdbcTemplate.update("update   vehicle_info set engine_no=?,frame=?,qualified_no=?,vehicle_license=?,license_plate=?,owner=?,update_at=? where id=?",engineNo,frame,qualifiedNo,vehicleLicense,licensePlate ,owner, new Date(),id);
+
+        return ResultUtils.get("修改成功", id);
     }
 
     @RequestMapping(value = "/findByLicensePlate", method = RequestMethod.POST)
