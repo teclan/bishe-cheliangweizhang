@@ -1,6 +1,7 @@
 package teclan.springboot.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mysql.cj.util.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,14 +31,14 @@ public class VehicleController {
     private JdbcTemplate jdbcTemplate;
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, @RequestParam("engine_no")String engineNo, @RequestParam("frame")String frame,@RequestParam("qualified_no")String qualifiedNo,@RequestParam("vehicle_license")String vehicleLicense,@RequestParam("license_plate")String licensePlate,@RequestParam(value = "owner",required = false)String owner) {
+    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, @RequestParam("engine_no") String engineNo, @RequestParam("frame") String frame, @RequestParam("qualified_no") String qualifiedNo, @RequestParam("vehicle_license") String vehicleLicense, @RequestParam("license_plate") String licensePlate, @RequestParam(value = "owner", required = false) String owner) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s'", licensePlate), Integer.class);
         if (count > 0) {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("添加失败，车牌号重复", licensePlate);
         } else {
-            jdbcTemplate.update("insert into vehicle_info (engine_no,frame,qualified_no,vehicle_license,license_plate,owner,register_at ) values (?,?,?,?,?,?,?)",engineNo,frame,qualifiedNo,vehicleLicense,licensePlate ,owner, new Date());
+            jdbcTemplate.update("insert into vehicle_info (engine_no,frame,qualified_no,vehicle_license,license_plate,owner,register_at ) values (?,?,?,?,?,?,?)", engineNo, frame, qualifiedNo, vehicleLicense, licensePlate, owner, new Date());
             return ResultUtils.get("添加成功", licensePlate);
         }
     }
@@ -45,16 +46,16 @@ public class VehicleController {
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse, String id) {
         jdbcTemplate.update("delete from vehicle_info where id=?", id);
-        return ResultUtils.get("删除成功", null);
+        return ResultUtils.get("删除成功", id);
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse, String id,  @RequestParam("engine_no")String engineNo, @RequestParam("frame")String frame,@RequestParam("qualified_no")String qualifiedNo,@RequestParam("vehicle_license")String vehicleLicense,@RequestParam("license_plate")String licensePlate,@RequestParam(value = "owner")String owner) {
+    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse, String id, @RequestParam("engine_no") String engineNo, @RequestParam("frame") String frame, @RequestParam("qualified_no") String qualifiedNo, @RequestParam("vehicle_license") String vehicleLicense, @RequestParam("license_plate") String licensePlate, @RequestParam(value = "owner") String owner) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
-        if(Objects.isNull(id)){
+        if (Objects.isNull(id)) {
             httpServletResponse.setStatus(500);
-            return ResultUtils.get("未指定记录ID",  null);
+            return ResultUtils.get("未指定记录ID", null);
         }
 
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s' and id<>%s", licensePlate, id), Integer.class);
@@ -62,7 +63,7 @@ public class VehicleController {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("修改失败，车牌号重复", licensePlate);
         }
-        jdbcTemplate.update("update   vehicle_info set engine_no=?,frame=?,qualified_no=?,vehicle_license=?,license_plate=?,owner=?,update_at=? where id=?",engineNo,frame,qualifiedNo,vehicleLicense,licensePlate ,owner, new Date(),id);
+        jdbcTemplate.update("update   vehicle_info set engine_no=?,frame=?,qualified_no=?,vehicle_license=?,license_plate=?,owner=?,update_at=? where id=?", engineNo, frame, qualifiedNo, vehicleLicense, licensePlate, owner, new Date(), id);
 
         return ResultUtils.get("修改成功", id);
     }
@@ -80,16 +81,21 @@ public class VehicleController {
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String keyword,String orderBy,String sort,int currentPage,int pageSize) {
-        String countSql="SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE CONCAT('%',%s,'%')";
-        String querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE CONCAT('%',%s,'%') ORDER BY %s %s limit %s,%s";
-        int totals = jdbcTemplate.queryForObject(String.format(countSql,keyword),Integer.class);
+    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String keyword, String orderBy, String sort, int currentPage, int pageSize) {
+        String countSql = "SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE 1=1";
+        String querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE 1=1 ";
+        if (!StringUtils.isNullOrEmpty(keyword)) {
+            countSql = "SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE '%" + keyword + "%'";
+            querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE '%" + keyword + "%' ";
 
-        if(totals<1){
-            return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage,pageSize,totals));
-        }else {
-            List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,keyword,orderBy,sort,PagesUtils.getOffset(currentPage,totals),pageSize));
-            return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage,pageSize,totals));
+        }
+        int totals = jdbcTemplate.queryForObject(countSql, Integer.class);
+
+        if (totals < 1) {
+            return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage, pageSize, totals));
+        } else {
+            List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+" order by "+orderBy+ " "+sort +" limit "+PagesUtils.getOffset(currentPage, totals)+","+ pageSize);
+            return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage, pageSize, totals));
         }
     }
 

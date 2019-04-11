@@ -109,21 +109,21 @@ public class UserController {
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse,String name,String idCard,String phone,String orderBy,String sort,int currentPage,int pageSize) {
+    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse,String name,@RequestParam(value = "id_card" ,required = false)String idCard,String phone, @RequestParam("orderBy")String orderBy,@RequestParam("sort")String sort,@RequestParam("currentPage")int currentPage,@RequestParam("pageSize")int pageSize) {
 
         String countSql="SELECT count(*) FROM user_info where %s";
-        String querySql = "SELECT * FROM vehicle_info where %s ORDER BY %s %s limit %s,%s";
+        String querySql = "SELECT * FROM user_info where %s ORDER BY %s %s limit %s,%s";
 
         StringBuilder sb =new StringBuilder(" 1=1");
 
-        if(StringUtils.isNullOrEmpty(name)){
-            sb.append(String.format(" and name LIKE CONCAT('%',%s,'%') ",name));
+        if(!StringUtils.isNullOrEmpty(name)){
+            sb.append(" and name LIKE '%"+name+"%') ");
         }
-        if(StringUtils.isNullOrEmpty(idCard)){
-            sb.append(String.format(" and idCard LIKE CONCAT('%',%s,'%') ",idCard));
+        if(!StringUtils.isNullOrEmpty(idCard)){
+            sb.append(" and idCard LIKE '%"+idCard+"%' ");
         }
-        if(StringUtils.isNullOrEmpty(phone)){
-            sb.append(String.format(" and phone LIKE CONCAT('%',%s,'%') ",phone));
+        if(!StringUtils.isNullOrEmpty(phone)){
+            sb.append(" and phone LIKE '%'"+phone+"%') ");
         }
 
         int totals = jdbcTemplate.queryForObject(String.format(countSql,sb.toString()),Integer.class);
