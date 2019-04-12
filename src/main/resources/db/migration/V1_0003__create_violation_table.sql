@@ -9,5 +9,6 @@ create table violation(
   `detention_day`  int(11) default 0 comment '拘留天数',
   `police` varchar(32) comment '现场警员编号',
   `punisher` varchar(32) comment '处罚人编号',
+  `update_at` datetime comment '修改时间',
   `create_time` datetime comment '创建时间'
 )ENGINE=InnoDB DEFAULT CHARSET=utf8 comment '违章记录';

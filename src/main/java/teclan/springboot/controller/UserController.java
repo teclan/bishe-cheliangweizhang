@@ -41,7 +41,7 @@ public class UserController {
     public JSONObject login(ServletRequest servletRequest, ServletResponse servletResponse, String code, String password) {
         Map<String, Object> map = findByCode(code);
         if (password.equals(((Map)map.get("datas")).get("password").toString())) { // 登录成功
-            String token = TokenUtisl.get();
+            String token = TokenUtils.get();
             // 更新token
             jdbcTemplate.update("update user_info set token=?,last_time=? where code=?", token, new Date(), code);
             Map<String,Object> datas =  ( Map<String,Object>)map.get("datas");

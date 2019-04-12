@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TokenUtisl {
+public class TokenUtils {
      public static  SnowFlake snowFlake = new SnowFlake(2, 3);
 
     public static Map<String,Object> TOKENS = new ConcurrentHashMap<String,Object>();

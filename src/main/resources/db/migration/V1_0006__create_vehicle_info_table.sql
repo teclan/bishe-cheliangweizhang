@@ -7,6 +7,6 @@ CREATE TABLE `vehicle_info`
   `vehicle_license` varchar(64) comment '行驶证',
   `license_plate` varchar(8) not null comment '车牌号',
   `register_at`  datetime comment '登记时间',
-  `update_at` datetime comment '登记修改时间',
+  `update_at` datetime comment '修改时间',
   `owner`         int(11) comment '用户ID'
 ) comment '车辆信息';
