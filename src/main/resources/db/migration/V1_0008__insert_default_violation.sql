@@ -1,0 +1,13 @@
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('1','京A88888',1,'北京丰台区郭公庄地铁A口','',6,200,0,'2019-03-12 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('2','京A77777',2,'北京海淀区四季青路1号路口','',0,2000,0,'2019-02-12 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('3','京A66666',3,'广西桂林上海路3号红绿灯','',6,600,0,'2019-01-12 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('4','京A77777',4,'广西南宁朝阳路口','',0,1500,0,'2019-04-11 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('5','京A66666',5,'广西桂林七星区普陀路3号','',1,200,0,'2019-04-10 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('6','京A77777',6,'广西桂林金鸡路口','',6,500,0,'2019-04-01 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('7','京A88888',7,'广西桂林中山南路','',0,20000,0,'2019-04-02 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('8','京A55555',8,'广西柳州柳长路中石化加油站','',12,2000,0,'2019-04-12 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('9','京A88888',9,'广西梧州解放路','',12,20000,15,'2019-04-03 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('10','京A55555',10,'广西桂林七星路','',12,50000,30,'2019-04-04 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('11','京A44444',11,'广西桂林辅星路','',2,200,0,'2019-04-05 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('12','京A88888',12,'广西桂林甲天下广场','',1,200,0,'2019-04-05 11:18:23');
+insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,create_time) values ('13','京A33333',13,'广西桂林解放前','',1,200,0,'2019-04-07 11:18:23');
