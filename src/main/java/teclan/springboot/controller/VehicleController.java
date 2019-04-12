@@ -76,8 +76,14 @@ public class VehicleController {
 
     @RequestMapping(value = "/findById", method = RequestMethod.POST)
     public JSONObject findById(ServletRequest servletRequest, ServletResponse servletResponse, String id) {
-        Map data = jdbcTemplate.queryForMap("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where id=?", id);
-        return ResultUtils.get("查询成功", data);
+        List<Map<String,Object>> datas = jdbcTemplate.queryForList("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where a.id=?", id);
+        return ResultUtils.get("查询成功", datas.isEmpty()||datas.size()==0?new ArrayList<>():datas.get(0));
+    }
+
+    @RequestMapping(value = "/findByUserId", method = RequestMethod.POST)
+    public JSONObject findByUserId(ServletRequest servletRequest, ServletResponse servletResponse, String id) {
+        List<Map<String,Object>> datas = jdbcTemplate.queryForList("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where b.id=?", id);
+        return ResultUtils.get("查询成功", datas);
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
