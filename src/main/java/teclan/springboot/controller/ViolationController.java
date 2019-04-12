@@ -89,31 +89,41 @@ public class ViolationController {
 
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause, String orderBy, String sort, int currentPage, int pageSize) {
-        String countSql = "SELECT count(*) FROM violation a LEFT JOIN violation_type b ON a.type=b.id WHERE %s";
-        String querySql = "SELECT * FROM violation a a LEFT JOIN violation_type b ON a.type=b.id WHERE %s ORDER BY %s %s limit %s,%s";
+    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause,String owner,@RequestParam(value = "orderBy" ,required = true,defaultValue = "create_time") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
+        String countSql = "SELECT count(*) FROM violation a " +
+                "left join violation_type b ON a.type=b.id " +
+                "left join vehicle_info c on a.license_plate=c.license_plate " +
+                "left join user_info d on c.owner=d.id  WHERE ";
+        String querySql = "SELECT a.*,b.type_name,c.engine_no,c.frame,c.qualified_no,c.vehicle_license,d.name,d.phone FROM violation a " +
+                "left join violation_type b ON a.type=b.id " +
+                "left join vehicle_info c on a.license_plate=c.license_plate " +
+                "left join user_info d on c.owner=d.id WHERE ";
 
         StringBuilder sb = new StringBuilder(" 1=1");
 
-        if (StringUtils.isNullOrEmpty(licensePlate)) {
+        if (!StringUtils.isNullOrEmpty(owner)) {
+            sb.append(" and c.owner= "+owner);
+        }
+
+        if (!StringUtils.isNullOrEmpty(licensePlate)) {
             sb.append(" and a.license_plate LIKE '%"+licensePlate+"%' ");
         }
-        if (StringUtils.isNullOrEmpty(type)) {
+        if (!StringUtils.isNullOrEmpty(type)) {
             sb.append(" a.type idCard '%"+type+"%' ");
         }
-        if (StringUtils.isNullOrEmpty(zone)) {
+        if (!StringUtils.isNullOrEmpty(zone)) {
             sb.append(" and a.zone LIKE '%"+zone+"%' ");
         }
-        if (StringUtils.isNullOrEmpty(cause)) {
+        if (!StringUtils.isNullOrEmpty(cause)) {
             sb.append(" and a.cause LIKE '%"+cause+"%' ");
         }
 
-        int totals = jdbcTemplate.queryForObject(String.format(countSql, sb.toString()), Integer.class);
+        int totals = jdbcTemplate.queryForObject(countSql+sb.toString(), Integer.class);
 
         if (totals < 1) {
             return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage, pageSize, totals));
         } else {
-            List<Map<String, Object>> datas = jdbcTemplate.queryForList(String.format(querySql, sb.toString(), orderBy, sort, PagesUtils.getOffset(currentPage, totals), pageSize));
+            List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+sb.toString()+" order by a."+orderBy+" "+sort +" limit "+ PagesUtils.getOffset(currentPage, totals)+","+pageSize);
             return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage, pageSize, totals));
         }
     }
