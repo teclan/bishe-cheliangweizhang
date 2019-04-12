@@ -2,6 +2,7 @@ package teclan.springboot.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mysql.cj.util.StringUtils;
+import org.flywaydb.core.internal.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -129,16 +130,26 @@ public class ViolationController {
     }
 
     @RequestMapping(value = "/analyse", method = RequestMethod.POST)
-    public JSONObject analyse(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate) {
+    public JSONObject analyse(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate,String starTime,String endTime) {
 
-        String sql = "select count(*) from violation group by type where 1=1";
+        String sql = "select violation.type,violation_type.type_name,count(*) as times from violation left join violation_type on violation.type=violation_type.id  where 1=1 ";
         List<Map<String, Object>> datas = new ArrayList<>();
 
-        if (StringUtils.isNullOrEmpty(licensePlate)) {
-            datas = jdbcTemplate.queryForList(sql);
-        } else {
-            datas = jdbcTemplate.queryForList(String.format(sql + " and license_plate CONCAT('%',%s,'%')", licensePlate));
+        if (StringUtils.isNullOrEmpty(starTime)){
+            starTime="1970";
         }
-        return ResultUtils.get("查询成功", null);
+        sql+=" and create_time>'"+starTime+"' ";
+
+        if (StringUtils.isNullOrEmpty(endTime)){
+            endTime= DateUtils.formatDateAsIsoString(new Date());
+        }
+        sql+=" and create_time<'"+endTime+"' ";
+
+        if (!StringUtils.isNullOrEmpty(licensePlate)) {
+            sql+=" and license_plate like '%"+licensePlate+"%' ";
+        }
+
+        datas = jdbcTemplate.queryForList(sql + " group by type");
+        return ResultUtils.get("查询成功", datas);
     }
 }
