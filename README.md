@@ -19,6 +19,20 @@
   输入账号密码（账号密码默认均是：admin），ActiveMQ具体的使用方式请参阅网上资料。
   
   
+  若要推送违章信息，请将内容发送到队列 `queue1`，内容格式为:
+  
+  ``` 
+   {
+      "license_plate":"车牌号",
+      "type":违章类型, // 取值参考数据表violation_type的id字段
+      "zone":"区域名称"
+     }
+  
+  ```
+  
+  或者通过 `http://localhost:80/send/queue1` 接口推送，详情请参考`接口文档.md`
+  
+  
 # 项目运行
 
 项目采用Maven管理，将项目以Maven形式导入IDE，等待IDE自动下载相关依赖即可，程序入口在`teclan.springboot.Main`文件中。

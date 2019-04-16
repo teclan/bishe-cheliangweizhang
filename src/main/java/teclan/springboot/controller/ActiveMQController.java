@@ -2,23 +2,21 @@ package teclan.springboot.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import teclan.springboot.avtivemq.Queue1SenderServer;
 import teclan.springboot.avtivemq.Topic1SenderServer;
+import teclan.springboot.utils.HttpTool;
 import teclan.springboot.utils.ResultUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * @ClassName: ActiveMQController
@@ -37,9 +35,10 @@ public class ActiveMQController {
 
 
     @RequestMapping("/send/queue1")
-    public JSONObject sendQueue1(String mesaage) {
-        queue1SenderServer.sendQueueMsg(mesaage);
-        return ResultUtils.get("修改成功", null);
+        public JSONObject sendQueue1(ServletRequest servletRequest) {
+       String message = HttpTool.readJSONString((HttpServletRequest)servletRequest);
+        queue1SenderServer.sendQueueMsg(message);
+        return ResultUtils.get("推送成功", message);
     }
 
     @RequestMapping("/send/file")
