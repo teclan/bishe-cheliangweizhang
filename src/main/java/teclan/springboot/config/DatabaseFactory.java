@@ -26,9 +26,6 @@ public class DatabaseFactory {
     private @Value("${datasource.password}")
     String password;
 
-    private @Value("${mybatis.mapper-locations}")
-    String mapperLocations;
-
     @Bean(name = "dataSource")
     public DataSource getDataSource() {
 
@@ -51,18 +48,6 @@ public class DatabaseFactory {
         config.setPassword(password);
 
         return new JdbcTemplate(new HikariDataSource(config));
-    }
-
-
-        @Bean(name = "sqlSessionFactory")
-        public SqlSessionFactory getSqlSessionFactory() throws Exception {
-            SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
-            sqlSessionFactoryBean.setDataSource(getDataSource());
-
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            sqlSessionFactoryBean.setMapperLocations(resolver.getResources(mapperLocations));
-
-        return sqlSessionFactoryBean.getObject();
     }
 
 }
