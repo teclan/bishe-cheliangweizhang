@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import teclan.springboot.avtivemq.Queue1SenderServer;
 import teclan.springboot.avtivemq.Topic1SenderServer;
+import teclan.springboot.utils.ResultUtils;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -34,14 +35,11 @@ public class ActiveMQController {
     @Resource
     Topic1SenderServer topic1SenderServer;
 
-    @RequestMapping("/send/queue1")
-    public String sendQueue1() {
 
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name","teclan");
-        jsonObject.put("type","queue");
-        queue1SenderServer.sendQueueMsg(JSON.toJSONString(jsonObject).getBytes());
-        return "200";
+    @RequestMapping("/send/queue1")
+    public JSONObject sendQueue1(String mesaage) {
+        queue1SenderServer.sendQueueMsg(mesaage);
+        return ResultUtils.get("修改成功", null);
     }
 
     @RequestMapping("/send/file")
@@ -60,7 +58,6 @@ public class ActiveMQController {
 
     @RequestMapping("/send/topic1")
     public String sendTopic1() {
-
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("name","teclan");
         jsonObject.put("type","topic");
