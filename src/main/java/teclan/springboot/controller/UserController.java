@@ -1,5 +1,6 @@
 package teclan.springboot.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mysql.cj.util.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
+import teclan.springboot.constant.Constants;
 import teclan.springboot.model.User;
 import teclan.springboot.utils.*;
 
@@ -43,7 +45,7 @@ public class UserController {
         if (password.equals(((Map)map.get("datas")).get("password").toString())) { // 登录成功
             String token = TokenUtils.get();
             // 更新token
-            jdbcTemplate.update("update user_info set token=?,last_time=? where code=?", token, new Date(), code);
+            jdbcTemplate.update("update user_info set token=?,last_time=? where code=?", token, Constants.SDF.format(new Date()), code);
             Map<String,Object> datas =  ( Map<String,Object>)map.get("datas");
             datas.put("tokent", token);
             datas.put("code", code);

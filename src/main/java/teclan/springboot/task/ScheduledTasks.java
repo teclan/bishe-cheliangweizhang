@@ -1,18 +1,26 @@
 package teclan.springboot.task;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
+import org.flywaydb.core.internal.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import teclan.springboot.constant.Constants;
+
+import javax.annotation.Resource;
 
 
 @Component
 public class ScheduledTasks {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledTasks.class);
-	
+
+	@Resource
+	private JdbcTemplate jdbcTemplate;
 	
 	// fixedDelay : 方法执行结束后，等待指定时间后执行下一次
 	// fixedRate : 两个方法开始执行的时间间隔>=指定时间，
@@ -21,11 +29,14 @@ public class ScheduledTasks {
 	
 	@Scheduled(fixedRate=5000)
 	public void reportCurrentSystem() {
-		LOGGER.info("\n===={} ",new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").format(new Date()));
-		
+		LOGGER.info("检查token是否过期{} ",new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").format(new Date()));
+
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.MINUTE, -30);
+
 		try {
-			Thread.sleep(6000);
-		} catch (InterruptedException e) {
+			jdbcTemplate.update("update user_info set token=?,last_time=? where last_time<?",null,null, Constants.SDF.format(calendar.getTime()));
+		} catch (Exception e) {
 			LOGGER.error(e.getMessage(),e);
 		}
 	}
