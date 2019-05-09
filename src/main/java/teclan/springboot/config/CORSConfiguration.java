@@ -2,9 +2,9 @@ package teclan.springboot.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 /**
  * 支持跨域配置
@@ -16,16 +16,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 public class CORSConfiguration {
     
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowedOrigins("*");
-            }
-        };
+    public CorsConfiguration corsConfigurater() {
+
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+        corsConfiguration.addAllowedOrigin("*"); // 允许任何域名使用
+        corsConfiguration.addAllowedHeader("*"); // 允许任何头
+        corsConfiguration.addAllowedMethod("*"); // 允许任何方法（post、get等）
+        return corsConfiguration;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfigurater()); // 对接口配置跨域设置
+        return new CorsFilter(source);
     }
 
 }
