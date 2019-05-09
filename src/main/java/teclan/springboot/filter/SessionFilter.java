@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 import teclan.springboot.constant.Constants;
 
 import javax.annotation.Resource;
@@ -15,21 +16,15 @@ import java.io.IOException;
 import java.util.Date;
 
 @Component
-public class SessionFilter implements Filter {
+public class SessionFilter implements HandlerInterceptor {
     private static final Logger LOGGER = LoggerFactory.getLogger(SessionFilter.class);
 
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        servletRequest.getAttribute(Constants.TOKEN);
-        HttpServletRequest httpServletRequest =(HttpServletRequest)servletRequest;
+    public boolean preHandle(javax.servlet.http.HttpServletRequest httpServletRequest, HttpServletResponse servletResponse, Object handler){
         String user = httpServletRequest.getHeader("user");
         String token =httpServletRequest.getHeader("token");
         String realToken="";
@@ -39,7 +34,7 @@ public class SessionFilter implements Filter {
         if(StringUtils.isNullOrEmpty(user)){
             LOGGER.error("\n\n {} , token无效,缺失[user]字段 ...",httpServletRequest.getRequestURI());
             httpServletResponse.setStatus(403);
-            return;
+            return false;
         }else{
             realToken = jdbcTemplate.queryForObject(String.format("select token from user_info where code='%s'",user),String.class);
         }
@@ -49,16 +44,12 @@ public class SessionFilter implements Filter {
             LOGGER.error("未认证");
             httpServletResponse.setStatus(401);
             jdbcTemplate.update("update user_info set token=?,last_time=? where code=?",null,Constants.SDF.format(new Date()),user);
-            return;
+            return false;
         }else {
             jdbcTemplate.update("update user_info set last_time=? where code=?",new Date(),user);
-            filterChain.doFilter(servletRequest,servletResponse);
+            return true;
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }
 

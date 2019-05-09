@@ -12,7 +12,7 @@ import org.springframework.web.filter.CorsFilter;
  *
  */
 @SuppressWarnings("deprecation")
-@Configuration
+//@Configuration
 public class CORSConfiguration {
     
     @Bean
