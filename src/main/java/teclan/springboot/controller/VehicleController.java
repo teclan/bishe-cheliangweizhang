@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import teclan.springboot.utils.Objects;
 import teclan.springboot.utils.PagesUtils;
 import teclan.springboot.utils.ResultUtils;
-import teclan.springboot.utils.SqlUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletRequest;

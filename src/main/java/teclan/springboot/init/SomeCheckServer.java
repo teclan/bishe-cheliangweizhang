@@ -1,7 +1,5 @@
 package teclan.springboot.init;
 
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.FlywayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +7,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
 
 /**
  * @ClassName: SomeCheckServer
