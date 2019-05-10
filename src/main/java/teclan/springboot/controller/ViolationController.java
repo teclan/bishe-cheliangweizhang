@@ -42,8 +42,8 @@ public class ViolationController {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
         if (StringUtils.isNullOrEmpty(licensePlate)) {
-            httpServletResponse.setStatus(500);
-            return ResultUtils.get("添加失败，车牌号为空", null);
+//            httpServletResponse.setStatus(500);
+            return ResultUtils.get(500,"添加失败，车牌号为空", null);
         }
 
         String id=IdUtils.get();
@@ -67,13 +67,13 @@ public class ViolationController {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
         if (StringUtils.isNullOrEmpty(id)) {
-            httpServletResponse.setStatus(500);
-            return ResultUtils.get("修改失败，指定的记录id无效", id);
+//            httpServletResponse.setStatus(500);
+            return ResultUtils.get(500,"修改失败，指定的记录id无效", id);
         }
 
         if (StringUtils.isNullOrEmpty(licensePlate)) {
-            httpServletResponse.setStatus(500);
-            return ResultUtils.get("修改失败，车牌号为空", null);
+//            httpServletResponse.setStatus(500);
+            return ResultUtils.get(500,"修改失败，车牌号为空", null);
         }
 
         jdbcTemplate.update("update violation set license_plate=?,type=?,zone=?,cause=?,deduction_score=?,deduction_amount=?,detention_day=?,police=?,punisher=?,update_at=?" +

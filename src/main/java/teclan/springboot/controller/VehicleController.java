@@ -34,8 +34,8 @@ public class VehicleController {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s'", licensePlate), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
-            return ResultUtils.get("添加失败，车牌号重复", licensePlate);
+//            httpServletResponse.setStatus(403);
+            return ResultUtils.get(500,"添加失败，车牌号重复", licensePlate);
         } else {
             jdbcTemplate.update("insert into vehicle_info (engine_no,frame,qualified_no,vehicle_license,license_plate,owner,register_at ) values (?,?,?,?,?,?,?)", engineNo, frame, qualifiedNo, vehicleLicense, licensePlate, owner, new Date());
             return ResultUtils.get("添加成功", licensePlate);
@@ -53,14 +53,14 @@ public class VehicleController {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
         if (Objects.isNull(id)) {
-            httpServletResponse.setStatus(500);
-            return ResultUtils.get("未指定记录ID", null);
+//            httpServletResponse.setStatus(500);
+            return ResultUtils.get(500,"未指定记录ID", null);
         }
 
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s' and id<>%s", licensePlate, id), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
-            return ResultUtils.get("修改失败，车牌号重复", licensePlate);
+//            httpServletResponse.setStatus(403);
+            return ResultUtils.get(403,"修改失败，车牌号重复", licensePlate);
         }
         jdbcTemplate.update("update   vehicle_info set engine_no=?,frame=?,qualified_no=?,vehicle_license=?,license_plate=?,owner=?,update_at=? where id=?", engineNo, frame, qualifiedNo, vehicleLicense, licensePlate, owner, new Date(), id);
 

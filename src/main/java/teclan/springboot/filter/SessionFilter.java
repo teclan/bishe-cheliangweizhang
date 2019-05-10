@@ -33,7 +33,7 @@ public class SessionFilter implements HandlerInterceptor {
 
         if(StringUtils.isNullOrEmpty(user)){
             LOGGER.error("\n\n {} , token无效,缺失[user]字段 ...",httpServletRequest.getRequestURI());
-            httpServletResponse.setStatus(403);
+//            httpServletResponse.setStatus(403);
             return false;
         }else{
             realToken = jdbcTemplate.queryForObject(String.format("select token from user_info where code='%s'",user),String.class);
@@ -42,7 +42,7 @@ public class SessionFilter implements HandlerInterceptor {
 
         if ( !"/user/login".equals(httpServletRequest.getRequestURI()) && (token == null || "".equals(token.toString()) || !token.equals(realToken) )) {
             LOGGER.error("未认证");
-            httpServletResponse.setStatus(401);
+//            httpServletResponse.setStatus(401);
             jdbcTemplate.update("update user_info set token=?,last_time=? where code=?",null,Constants.SDF.format(new Date()),user);
             return false;
         }else {

@@ -44,8 +44,8 @@ public class UserController {
 
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         if(map.get("datas")==null||((Map)map.get("datas")).get("password")==null){
-            httpServletResponse.setStatus(403);
-            return ResultUtils.get("用户不存在或密码未设置", null);
+//            httpServletResponse.setStatus(403);
+            return ResultUtils.get(403,"用户不存在或密码未设置", null);
         }
 
         if (password.equals(((Map)map.get("datas")).get("password").toString())) { // 登录成功
@@ -57,8 +57,8 @@ public class UserController {
             datas.put("code", code);
             return ResultUtils.get("登录成功",datas);
         } else {
-            httpServletResponse.setStatus(401);
-            return ResultUtils.get("登录失败,密码错误", null);
+//            httpServletResponse.setStatus(401);
+            return ResultUtils.get(403,"登录失败,密码错误", null);
         }
     }
 
@@ -76,8 +76,8 @@ public class UserController {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where code='%s'", code), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
-            return ResultUtils.get("注册失败，用户标志已被占用", null);
+//            httpServletResponse.setStatus(403);
+            return ResultUtils.get(403,"注册失败，用户标志已被占用", null);
         }
 
         count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where id_card='%s'", idCard), Integer.class);
