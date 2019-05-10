@@ -164,10 +164,10 @@ public class UserController {
         }
     }
 
-    @RequestMapping(value = "/changePassword/{code}", method = RequestMethod.POST)
-    public JSONObject changePassword(ServletRequest servletRequest, ServletResponse servletResponse,@PathVariable("code")  String code,String password) {
+    @RequestMapping(value = "/changePassword", method = RequestMethod.POST)
+    public JSONObject changePassword(ServletRequest servletRequest, ServletResponse servletResponse, String code,String password) {
 
-        jdbcTemplate.update(String.format("update user_info set password=? where code=?",password,code);
+        jdbcTemplate.update("update user_info set password=? where code=?",password,code);
 
         return ResultUtils.get("修改成功", null);
     }
