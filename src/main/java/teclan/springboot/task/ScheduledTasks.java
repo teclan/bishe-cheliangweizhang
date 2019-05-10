@@ -26,7 +26,7 @@ public class ScheduledTasks {
 	// 如果方法体执行耗时小于指定时间，则等待到指定时间再执行下一次，
 	// 如果方法体执行耗时大于等于指定时间，则立即执行下一次
 	
-	@Scheduled(fixedRate=5000)
+	@Scheduled(fixedRate=3600000)
 	public void reportCurrentSystem() {
 		LOGGER.info("检查token是否过期{} ",new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").format(new Date()));
 
