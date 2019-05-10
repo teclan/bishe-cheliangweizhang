@@ -40,7 +40,7 @@ public class SessionFilter implements HandlerInterceptor {
         }
 
 
-        if ( !"/user/login".equals(httpServletRequest.getRequestURI()) && (token == null || "".equals(token.toString()) || !token.equals(realToken) )) {
+        if (!"/user/register".equals(httpServletRequest.getRequestURI()) && !"/user/create".equals(httpServletRequest.getRequestURI())&& !"/user/login".equals(httpServletRequest.getRequestURI()) && (token == null || "".equals(token.toString()) || !token.equals(realToken) )) {
             LOGGER.error("未认证");
 //            httpServletResponse.setStatus(401);
             jdbcTemplate.update("update user_info set token=?,last_time=? where code=?",null,Constants.SDF.format(new Date()),user);
