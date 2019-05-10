@@ -123,8 +123,8 @@ public class UserController {
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse, String code) {
-        jdbcTemplate.update("delete from user_info where code=?", code);
+    public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse, String id) {
+        jdbcTemplate.update("delete from user_info where id=?", id);
         return ResultUtils.get("删除成功", null);
     }
 
