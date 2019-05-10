@@ -41,16 +41,22 @@ public class UserController {
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public JSONObject login(ServletRequest servletRequest, ServletResponse servletResponse, String code, String password) {
         Map<String, Object> map = findByCode(code);
+
+        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+        if(map.get("datas")==null||((Map)map.get("datas")).get("password")==null){
+            httpServletResponse.setStatus(403);
+            return ResultUtils.get("用户不存在或密码未设置", null);
+        }
+
         if (password.equals(((Map)map.get("datas")).get("password").toString())) { // 登录成功
             String token = TokenUtils.get();
             // 更新token
             jdbcTemplate.update("update user_info set token=?,last_time=? where code=?", token, Constants.SDF.format(new Date()), code);
-            Map<String,Object> datas =  ( Map<String,Object>)map.get("datas");
-            datas.put("tokent", token);
+
+            Map<String,Object> datas =  ( Map<String,Object>)findByCode(code).get("datas");
             datas.put("code", code);
             return ResultUtils.get("登录成功",datas);
         } else {
-            HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
             httpServletResponse.setStatus(401);
             return ResultUtils.get("登录失败,密码错误", null);
         }
