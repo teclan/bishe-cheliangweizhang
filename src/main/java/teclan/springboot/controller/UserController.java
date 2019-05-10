@@ -145,13 +145,13 @@ public class UserController {
         StringBuilder sb =new StringBuilder(" 1=1");
 
         if(!StringUtils.isNullOrEmpty(name)){
-            sb.append(" and name LIKE '%"+name+"%') ");
+            sb.append(" and name LIKE '%"+name+"%' ");
         }
         if(!StringUtils.isNullOrEmpty(idCard)){
             sb.append(" and idCard LIKE '%"+idCard+"%' ");
         }
         if(!StringUtils.isNullOrEmpty(phone)){
-            sb.append(" and phone LIKE '%'"+phone+"%') ");
+            sb.append(" and phone LIKE '%'"+phone+"%' ");
         }
 
         int totals = jdbcTemplate.queryForObject(String.format(countSql,sb.toString()),Integer.class);
