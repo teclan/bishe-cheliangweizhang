@@ -1,0 +1,1 @@
+ALTER TABLE violation add `status` int comment '是否确认 0/1';
