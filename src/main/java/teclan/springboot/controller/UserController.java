@@ -70,6 +70,7 @@ public class UserController {
     }
 
 
+    // 默认注册普通账号
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public JSONObject register(ServletRequest servletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password) {
 
@@ -96,9 +97,29 @@ public class UserController {
     }
 
 
+    // 默认创建管理员
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password) {
-        return register(servletRequest,servletResponse,code,name,idCard,phone,password);
+        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+        int count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where code='%s'", code), Integer.class);
+        if (count > 0) {
+//            httpServletResponse.setStatus(403);
+            return ResultUtils.get(403,"注册失败，用户标志已被占用", null);
+        }
+
+        count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where id_card='%s'", idCard), Integer.class);
+        if (count > 0) {
+            httpServletResponse.setStatus(403);
+            return ResultUtils.get("注册失败，身份证已经被注册", null);
+        }
+
+        count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where phone='%s'", phone), Integer.class);
+        if (count > 0) {
+            httpServletResponse.setStatus(403);
+            return ResultUtils.get("注册失败，手机号已经被注册", null);
+        }
+        jdbcTemplate.update("insert into user_info (code,name,id_card,password,role,create_time) values (?,?,?,?,?,?)", code, name, idCard, password, "admin",Constants.SDF.format(new Date()));
+        return ResultUtils.get("注册成功", null);
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
