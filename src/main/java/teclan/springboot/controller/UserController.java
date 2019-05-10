@@ -159,7 +159,7 @@ public class UserController {
         if(totals<1){
             return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage,pageSize,totals));
         }else {
-            List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,sb.toString(),orderBy,sort, PagesUtils.getOffset(currentPage,totals),pageSize));
+            List<Map<String,Object>> datas = jdbcTemplate.queryForList(String.format(querySql,sb.toString(),orderBy,sort, PagesUtils.getOffset(currentPage,pageSize),pageSize));
             return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage,pageSize,totals));
         }
     }

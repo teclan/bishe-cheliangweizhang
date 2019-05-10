@@ -69,7 +69,7 @@ public class VehicleController {
 
     @RequestMapping(value = "/findByLicensePlate", method = RequestMethod.POST)
     public JSONObject findByLicensePlate(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate) {
-        Map data = jdbcTemplate.queryForMap("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?", licensePlate);
+        Map data = jdbcTemplate.queryForMap("select a.*,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?", licensePlate);
         return ResultUtils.get("查询成功", data);
     }
 
@@ -99,7 +99,7 @@ public class VehicleController {
         if (totals < 1) {
             return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage, pageSize, totals));
         } else {
-            List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+" order by "+orderBy+ " "+sort +" limit "+PagesUtils.getOffset(currentPage, totals)+","+ pageSize);
+            List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+" order by "+orderBy+ " "+sort +" limit "+PagesUtils.getOffset(currentPage, pageSize)+","+ pageSize);
             return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage, pageSize, totals));
         }
     }

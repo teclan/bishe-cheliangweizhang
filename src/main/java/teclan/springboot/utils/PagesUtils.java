@@ -17,7 +17,7 @@ public class PagesUtils {
         return map;
     }
 
-    public static int getOffset(int currentPage, int totals) {
-        return currentPage>0?(currentPage-1)*totals:0;
+    public static int getOffset(int currentPage, int pageSize) {
+        return currentPage>0?(currentPage-1)*pageSize:0;
     }
 }

@@ -79,6 +79,7 @@ public class ViolationController {
         jdbcTemplate.update("update violation set license_plate=?,type=?,zone=?,cause=?,deduction_score=?,deduction_amount=?,detention_day=?,police=?,punisher=?,update_at=?" +
                 " where id=?", licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,punisher,new Date(),id);
 
+
         return ResultUtils.get("操作成功", id);
     }
 
@@ -124,7 +125,7 @@ public class ViolationController {
         if (totals < 1) {
             return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage, pageSize, totals));
         } else {
-            List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+sb.toString()+" order by a."+orderBy+" "+sort +" limit "+ PagesUtils.getOffset(currentPage, totals)+","+pageSize);
+            List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+sb.toString()+" order by a."+orderBy+" "+sort +" limit "+ PagesUtils.getOffset(currentPage, pageSize)+","+pageSize);
             return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage, pageSize, totals));
         }
     }
