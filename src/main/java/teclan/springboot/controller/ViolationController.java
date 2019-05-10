@@ -47,7 +47,7 @@ public class ViolationController {
         }
 
         String id=IdUtils.get();
-        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time) values (?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date());
+        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status) values (?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0);
 
         return ResultUtils.get("添加成功", id);
     }
@@ -89,6 +89,22 @@ public class ViolationController {
         return ResultUtils.get("删除成功", id);
     }
 
+    @RequestMapping(value = "/confirm", method = RequestMethod.POST)
+    public JSONObject confirm(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+
+        Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
+        String licensePlate = violation.get("license_plate").toString();
+        String deductionScore = violation.get("deduction_score").toString();
+
+        Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
+        String owner=vehicleInfo.get("owner").toString();
+
+        // 扣除用户分数
+        jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0-%s,surplus-%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+
+
+        return ResultUtils.get("确认成功", id);
+    }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
     public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause,String owner,@RequestParam(value = "orderBy" ,required = true,defaultValue = "create_time") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
