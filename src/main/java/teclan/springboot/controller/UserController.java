@@ -92,7 +92,7 @@ public class UserController {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
-        jdbcTemplate.update("insert into user_info (code,name,id_card,password,role,create_time) values (?,?,?,?,?,?)", code, name, idCard, password, "general",Constants.SDF.format(new Date()));
+        jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
         return ResultUtils.get("注册成功", null);
     }
 
@@ -118,7 +118,7 @@ public class UserController {
             httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
-        jdbcTemplate.update("insert into user_info (code,name,id_card,password,role,create_time) values (?,?,?,?,?,?)", code, name, idCard, password, "admin",Constants.SDF.format(new Date()));
+        jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
         return ResultUtils.get("注册成功", null);
     }
 
