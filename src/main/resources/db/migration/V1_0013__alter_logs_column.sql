@@ -1,0 +1,1 @@
+ALTER TABLE logs CHANGE  user_id user_code varchar(50) comment '用户账号(code)';

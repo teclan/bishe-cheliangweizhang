@@ -1,5 +1,6 @@
 package teclan.springboot.controller;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +74,7 @@ public class MessageController {
 	        
 	        Map<String,Object> map = jdbcTemplate.queryForMap(querySql,id);
 	        
-	        jdbcTemplate.update("update message set read=? where id=?",1,id);
+	        jdbcTemplate.update("update message set read=?,read_time where id=?",1,new Date(),id);
 
 	        return ResultUtils.get("查询成功", map);
 	    }

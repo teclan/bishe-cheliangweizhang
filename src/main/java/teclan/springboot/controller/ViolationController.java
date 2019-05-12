@@ -8,11 +8,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import teclan.springboot.log.LogModule;
+import teclan.springboot.log.LogService;
+import teclan.springboot.log.LogStatus;
+import teclan.springboot.msg.MessageService;
 import teclan.springboot.utils.*;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,9 +34,13 @@ public class ViolationController {
 
     @Resource
     private JdbcTemplate jdbcTemplate;
+    @Resource
+    private LogService logService;
+    @Resource
+    private MessageService messageService;
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse,
+    public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse,
                              @RequestParam(value = "license_plate", required = true) String licensePlate,
                              @RequestParam(value = "type", required = true) String type,
                              @RequestParam(value = "zone", required = true) String zone,
@@ -39,21 +49,25 @@ public class ViolationController {
                              @RequestParam(value = "deduction_amount", required = false ,defaultValue = "0.0") Double deductionAmount,
                              @RequestParam(value = "detention_day", required = false,defaultValue = "0") Integer detentionDay,
                              @RequestParam(value = "police", required = false) String police) {
-        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
+        String user = httpServletRequest.getHeader("user");
+        
         if (StringUtils.isNullOrEmpty(licensePlate)) {
 //            httpServletResponse.setStatus(500);
+        	logService.add(LogModule.violationManage, user, String.format("创建违章 车牌:%s",licensePlate), LogStatus.fail);
             return ResultUtils.get(500,"添加失败，车牌号为空", null);
         }
 
         String id=IdUtils.get();
         jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status) values (?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0);
 
+        logService.add(LogModule.violationManage, user, String.format("创建违章 车牌:%s",licensePlate), LogStatus.success);
+        
         return ResultUtils.get("添加成功", id);
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse,
+    public JSONObject update(HttpServletRequest httpServletRequest, ServletResponse servletResponse,
                              @RequestParam(value = "id", required = true)String id,
                              @RequestParam(value = "license_plate", required = true) String licensePlate,
                              @RequestParam(value = "type", required = true) String type,
@@ -64,7 +78,7 @@ public class ViolationController {
                              @RequestParam(value = "detention_day", required = true,defaultValue = "0") Integer detentionDay,
                              @RequestParam(value = "police", required = true) String police,
                              @RequestParam(value = "punisher", required = true) String punisher) {
-        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+    	String user = httpServletRequest.getHeader("user");
 
         if (StringUtils.isNullOrEmpty(id)) {
 //            httpServletResponse.setStatus(500);
@@ -79,13 +93,20 @@ public class ViolationController {
         jdbcTemplate.update("update violation set license_plate=?,type=?,zone=?,cause=?,deduction_score=?,deduction_amount=?,detention_day=?,police=?,punisher=?,update_at=?" +
                 " where id=?", licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,punisher,new Date(),id);
 
-
+        logService.add(LogModule.violationManage, user, String.format("处理违章 车牌:%s",licensePlate), LogStatus.success);
+        
         return ResultUtils.get("操作成功", id);
     }
 
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
-        jdbcTemplate.update("delete from violation where id=?", id);
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public JSONObject delete(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+    	String user = httpServletRequest.getHeader("user");
+    	Map<String,Object> map = jdbcTemplate.queryForMap("select * from violation where id=?",id);
+    	
+    	jdbcTemplate.update("delete from violation where id=?", id);
+        
+        logService.add(LogModule.violationManage, user, String.format("删除违章 车牌:%s",map.get("license_plate")), LogStatus.success);
+        
         return ResultUtils.get("删除成功", id);
     }
     
@@ -102,8 +123,9 @@ public class ViolationController {
     }
 
     @RequestMapping(value = "/confirm", method = RequestMethod.POST)
-    public JSONObject confirm(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
-
+    public JSONObject confirm(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+    	String user = httpServletRequest.getHeader("user");
+    	
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
         String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
@@ -116,15 +138,16 @@ public class ViolationController {
             jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0-%s,surplus-%s)  WHERE id =%s",deductionScore,deductionScore,owner));
         }
 
-        // TODO
-        // 插入消息
+        logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
+//        messageService.add(user, String.format("您的爱车 %s 违章编号:%S", args));
 
         return ResultUtils.get("确认成功", id);
     }
 
     @RequestMapping(value = "/cancle", method = RequestMethod.POST)
-    public JSONObject cancle(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
-
+    public JSONObject cancle(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+    	String user = httpServletRequest.getHeader("user");
+    	
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
         String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
@@ -137,9 +160,8 @@ public class ViolationController {
             jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0+%s,surplus+%s)  WHERE id =%s",deductionScore,deductionScore,owner));
         }
 
-        // TODO
-        // 插入消息
-
+        logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
+        
         return ResultUtils.get("确认成功", id);
     }
 

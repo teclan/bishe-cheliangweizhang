@@ -8,16 +8,31 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mysql.cj.util.StringUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.web.bind.annotation.*;
+
 import teclan.springboot.constant.Constants;
+import teclan.springboot.log.LogModule;
+import teclan.springboot.log.LogService;
+import teclan.springboot.log.LogStatus;
 import teclan.springboot.model.User;
-import teclan.springboot.utils.*;
+import teclan.springboot.utils.Objects;
+import teclan.springboot.utils.PagesUtils;
+import teclan.springboot.utils.ResultUtils;
+import teclan.springboot.utils.SqlUtils;
+import teclan.springboot.utils.TokenUtils;
 
 @RestController
 @RequestMapping("/user")
@@ -25,9 +40,12 @@ public class UserController {
 
     @Resource
     private JdbcTemplate jdbcTemplate;
+    
+    @Resource
+    private LogService logService;
 
     @RequestMapping(value = "/findById", method = RequestMethod.GET)
-    public Map<String, Object> get(Long id) {
+    public Map<String, Object> findById(Long id) {
         Map<String, Object> datas = jdbcTemplate.queryForMap("select * from user_info where id=?", id);
         return ResultUtils.get("查询成功", datas);
     }
@@ -53,11 +71,16 @@ public class UserController {
             // 更新token
             jdbcTemplate.update("update user_info set token=?,last_time=? where code=?", token, Constants.SDF.format(new Date()), code);
 
-            Map<String,Object> datas =  ( Map<String,Object>)findByCode(code).get("datas");
+            @SuppressWarnings("unchecked")
+			Map<String,Object> datas =  ( Map<String,Object>)findByCode(code).get("datas");
             datas.put("code", code);
+            
+            logService.add(LogModule.userManage, datas.get("id").toString(), "登录系统", LogStatus.success);
+            
             return ResultUtils.get("登录成功",datas);
         } else {
 //            httpServletResponse.setStatus(401);
+        	 logService.add(LogModule.userManage, map.get("id").toString(), "登录系统", LogStatus.fail);
             return ResultUtils.get(403,"登录失败,密码错误", null);
         }
     }
@@ -66,6 +89,8 @@ public class UserController {
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     public JSONObject logout(ServletRequest servletRequest, String code) {
         jdbcTemplate.update("update user_info set token=null,last_time=null where code=?", code);
+        Map<String, Object> map = findByCode(code);
+        logService.add(LogModule.userManage, map.get("id").toString(), "退出系统", LogStatus.success);
         return ResultUtils.get("退出成功", null);
     }
 
@@ -93,13 +118,17 @@ public class UserController {
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
         jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
+        
+        Map<String, Object> map = findByCode(code);
+        logService.add(LogModule.userManage, map.get("id").toString(), "注册成为新用户", LogStatus.success);
+        
         return ResultUtils.get("注册成功", null);
     }
 
 
     // 默认创建管理员
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password) {
+    public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where code='%s'", code), Integer.class);
         if (count > 0) {
@@ -119,20 +148,39 @@ public class UserController {
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
         jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
+        
+        Map<String, Object> map = findByCode(code);
+        String user = httpServletRequest.getHeader("user");
+        
+        logService.add(LogModule.userManage, user, String.format("创建用户 id:%s,code:%s,name:%s，role:%s", map.get("id"),map.get("code"),map.get("name"),map.get("role")), LogStatus.success);
+        
         return ResultUtils.get("注册成功", null);
     }
 
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse, String id) {
+    @SuppressWarnings("unchecked")
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public JSONObject delete(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String id) {
+    	
+    	String user = httpServletRequest.getHeader("user");
+    	
+    	 Map<String, Object> map =  (Map<String, Object>)findById(Long.valueOf(id)).get("datas");
+    	 
         jdbcTemplate.update("delete from user_info where id=?", id);
+       
+        logService.add(LogModule.userManage, user, String.format("删除用户 id:%s,code:%s,name:%s", map.get("id"),map.get("code"),map.get("name"),map.get("role")), LogStatus.success);
+        
         return ResultUtils.get("删除成功", null);
     }
 
     @RequestMapping(value = "/update/{code}", method = RequestMethod.POST)
-    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse,@PathVariable("code")  String code, @ModelAttribute User data) {
+    public JSONObject update(HttpServletRequest httpServletRequest, ServletResponse servletResponse,@PathVariable("code")  String code, @ModelAttribute User data) {
         Object[] values = SqlUtils.getValues(JSON.parseObject(JSON.toJSONString(data)));
         values = Objects.merge(values,new Object[]{code});
         jdbcTemplate.update(String.format("update user_info set %s where code=?",SqlUtils.getSqlForUpdate(JSON.parseObject(JSON.toJSONString(data)))),values);
+       
+        String user = httpServletRequest.getHeader("user");
+        logService.add(LogModule.userManage, user, String.format("修改用户 id:%s,code:%s,name:%s", data.getId(),data.getCode(),data.getName(),data.getRole()), LogStatus.success);
+        
         return ResultUtils.get("修改成功", null);
     }
 

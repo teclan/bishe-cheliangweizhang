@@ -7,6 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import teclan.springboot.log.LogModule;
+import teclan.springboot.log.LogService;
+import teclan.springboot.log.LogStatus;
 import teclan.springboot.utils.Objects;
 import teclan.springboot.utils.PagesUtils;
 import teclan.springboot.utils.ResultUtils;
@@ -14,6 +18,7 @@ import teclan.springboot.utils.ResultUtils;
 import javax.annotation.Resource;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,30 +33,44 @@ import java.util.Map;
 public class VehicleController {
     @Resource
     private JdbcTemplate jdbcTemplate;
+    @Resource
+    private LogService logService;
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public JSONObject create(ServletRequest servletRequest, ServletResponse servletResponse, @RequestParam("engine_no") String engineNo, @RequestParam("frame") String frame, @RequestParam("qualified_no") String qualifiedNo, @RequestParam("vehicle_license") String vehicleLicense, @RequestParam("license_plate") String licensePlate, @RequestParam(value = "owner", required = false) String owner) {
-        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s'", licensePlate), Integer.class);
+    public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse, @RequestParam("engine_no") String engineNo, @RequestParam("frame") String frame, @RequestParam("qualified_no") String qualifiedNo, @RequestParam("vehicle_license") String vehicleLicense, @RequestParam("license_plate") String licensePlate, @RequestParam(value = "owner", required = false) String owner) {
+    	 String user = httpServletRequest.getHeader("user");
+    	 
+    	int count = jdbcTemplate.queryForObject(String.format("select count(*) from vehicle_info  where license_plate='%s'", licensePlate), Integer.class);
         if (count > 0) {
 //            httpServletResponse.setStatus(403);
+        	logService.add(LogModule.vehicleManage, user, String.format("创建车辆 车牌:%s",licensePlate), LogStatus.fail);
             return ResultUtils.get(500,"添加失败，车牌号重复", licensePlate);
+            
         } else {
             jdbcTemplate.update("insert into vehicle_info (engine_no,frame,qualified_no,vehicle_license,license_plate,owner,register_at ) values (?,?,?,?,?,?,?)", engineNo, frame, qualifiedNo, vehicleLicense, licensePlate, owner, new Date());
+           
+            logService.add(LogModule.vehicleManage, user, String.format("创建车辆 车牌:%s",licensePlate), LogStatus.success);
             return ResultUtils.get("添加成功", licensePlate);
         }
     }
 
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public JSONObject delete(ServletRequest servletRequest, ServletResponse servletResponse, String id) {
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public JSONObject delete(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String id) {
+    	 String user = httpServletRequest.getHeader("user");
+    	 
+    	 List<Map<String,Object>> datas = jdbcTemplate.queryForList("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where a.id=?", id);
+    	 
         jdbcTemplate.update("delete from vehicle_info where id=?", id);
+        
+        logService.add(LogModule.vehicleManage, user, String.format("创建车辆 车牌:%s",datas.get(0)!=null?"":datas.get(0).get("license_plate")), LogStatus.success);
+        
         return ResultUtils.get("删除成功", id);
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public JSONObject update(ServletRequest servletRequest, ServletResponse servletResponse, String id, @RequestParam("engine_no") String engineNo, @RequestParam("frame") String frame, @RequestParam("qualified_no") String qualifiedNo, @RequestParam("vehicle_license") String vehicleLicense, @RequestParam("license_plate") String licensePlate, @RequestParam(value = "owner") String owner) {
-        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-
+    public JSONObject update(HttpServletResponse httpServletRequest, ServletResponse servletResponse, String id, @RequestParam("engine_no") String engineNo, @RequestParam("frame") String frame, @RequestParam("qualified_no") String qualifiedNo, @RequestParam("vehicle_license") String vehicleLicense, @RequestParam("license_plate") String licensePlate, @RequestParam(value = "owner") String owner) {
+        String user = httpServletRequest.getHeader("user");
+        
         if (Objects.isNull(id)) {
 //            httpServletResponse.setStatus(500);
             return ResultUtils.get(500,"未指定记录ID", null);
@@ -62,8 +81,13 @@ public class VehicleController {
 //            httpServletResponse.setStatus(403);
             return ResultUtils.get(403,"修改失败，车牌号重复", licensePlate);
         }
+        
+        List<Map<String,Object>> datas = jdbcTemplate.queryForList("select a.*,b.name,b.phone from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where a.id=?", id);
+    	
         jdbcTemplate.update("update   vehicle_info set engine_no=?,frame=?,qualified_no=?,vehicle_license=?,license_plate=?,owner=?,update_at=? where id=?", engineNo, frame, qualifiedNo, vehicleLicense, licensePlate, owner, new Date(), id);
 
+        logService.add(LogModule.vehicleManage, user, String.format("修改车辆 车牌:%s",datas.get(0)!=null?"":datas.get(0).get("license_plate")), LogStatus.success);
+        
         return ResultUtils.get("修改成功", id);
     }
 

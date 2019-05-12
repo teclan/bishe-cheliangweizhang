@@ -1,0 +1,1 @@
+ALTER TABLE logs CHANGE  module module varchar(16) comment '模块';
