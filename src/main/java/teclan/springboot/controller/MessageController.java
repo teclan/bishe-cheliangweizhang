@@ -66,7 +66,7 @@ public class MessageController {
 	    
 
 	    // 查看消息详细信息，触发已读
-	    @RequestMapping(value = "/findById", method = RequestMethod.POST)
+	    @RequestMapping(value = "/findById", method = RequestMethod.GET)
 	    public JSONObject findById(ServletRequest servletRequest, ServletResponse servletResponse,
 	                             @RequestParam(value = "id", required = true) String id) {
 	        String querySql = "select * from message where id=?";
