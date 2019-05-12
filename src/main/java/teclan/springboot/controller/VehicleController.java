@@ -93,7 +93,7 @@ public class VehicleController {
 
     @RequestMapping(value = "/findByLicensePlate", method = RequestMethod.POST)
     public JSONObject findByLicensePlate(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate) {
-        Map data = jdbcTemplate.queryForMap("select a.*,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?", licensePlate);
+        Map data = jdbcTemplate.queryForMap("select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?", licensePlate);
         return ResultUtils.get("查询成功", data);
     }
 

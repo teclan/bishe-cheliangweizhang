@@ -129,6 +129,8 @@ public class ViolationController {
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
         String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
+        String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
+        String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
 
         Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
         String owner=vehicleInfo.get("owner").toString();
@@ -139,8 +141,17 @@ public class ViolationController {
         }
 
         logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
-//        messageService.add(user, String.format("您的爱车 %s 违章编号:%S", args));
 
+        Map data = jdbcTemplate.queryForMap(
+				"select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?",
+				licensePlate);
+
+		if (data.get("code") != null) {
+			String msg=String.format("您的爱车%s违章编号%s处罚结果已生效，处罚结果: 扣除分数：%s，罚款： %s元，拘留天数：%s 天，请及时到交警中心处理，您也可以登录 交管12123 查看详情 ", licensePlate,id,deductionScore,deductionAmount,detentionDay);
+			messageService.add(user,msg );
+
+		}
+		
         return ResultUtils.get("确认成功", id);
     }
 
@@ -151,7 +162,9 @@ public class ViolationController {
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
         String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
-
+        String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
+        String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
+        
         Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
         String owner=vehicleInfo.get("owner").toString();
 
@@ -162,6 +175,15 @@ public class ViolationController {
 
         logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
         
+		Map data = jdbcTemplate.queryForMap(
+				"select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?",
+				licensePlate);
+
+		if (data.get("code") != null) {
+			messageService.add(data.get("code").toString(),
+					String.format("您的爱车 %s 违章编号:%s处罚已被撤销，原处罚结果：扣除分数:%s，罚款:%s元，拘留天数：%s 天，您也可以登录 交管12123 查看详情", licensePlate, id,
+							deductionScore, deductionAmount, detentionDay));
+		}
         return ResultUtils.get("确认成功", id);
     }
 

@@ -108,13 +108,13 @@ public class UserController {
 
         count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where id_card='%s'", idCard), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
+//            httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，身份证已经被注册", null);
         }
 
         count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where phone='%s'", phone), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
+//            httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
         jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
@@ -138,13 +138,13 @@ public class UserController {
 
         count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where id_card='%s'", idCard), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
+//            httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，身份证已经被注册", null);
         }
 
         count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where phone='%s'", phone), Integer.class);
         if (count > 0) {
-            httpServletResponse.setStatus(403);
+//            httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
         jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
