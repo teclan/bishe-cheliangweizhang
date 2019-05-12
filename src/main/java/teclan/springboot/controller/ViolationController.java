@@ -88,20 +88,57 @@ public class ViolationController {
         jdbcTemplate.update("delete from violation where id=?", id);
         return ResultUtils.get("删除成功", id);
     }
+    
+    @RequestMapping(value = "/findById", method = RequestMethod.GET)
+    public JSONObject findById(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+    	  String querySql = "SELECT a.*,b.type_name,c.engine_no,c.frame,c.qualified_no,c.vehicle_license,d.name,d.phone FROM violation a " +
+                  "left join violation_type b ON a.type=b.id " +
+                  "left join vehicle_info c on a.license_plate=c.license_plate " +
+                  "left join user_info d on c.owner=d.id WHERE a.id=?";
+    	  
+    	 Map<String,Object> map = jdbcTemplate.queryForMap(querySql,id);
+    	  
+        return ResultUtils.get("查询成功", map);
+    }
 
     @RequestMapping(value = "/confirm", method = RequestMethod.POST)
     public JSONObject confirm(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
 
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
-        String deductionScore = violation.get("deduction_score").toString();
+        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
 
         Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
         String owner=vehicleInfo.get("owner").toString();
 
-        // 扣除用户分数
-        jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0-%s,surplus-%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+        if(!"0".equals(deductionScore)){
+            // 扣除用户分数
+            jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0-%s,surplus-%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+        }
 
+        // TODO
+        // 插入消息
+
+        return ResultUtils.get("确认成功", id);
+    }
+
+    @RequestMapping(value = "/cancle", method = RequestMethod.POST)
+    public JSONObject cancle(ServletRequest servletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+
+        Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
+        String licensePlate = violation.get("license_plate").toString();
+        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
+
+        Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
+        String owner=vehicleInfo.get("owner").toString();
+
+        if(!"0".equals(deductionScore)){
+            // 扣除用户分数
+            jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0+%s,surplus+%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+        }
+
+        // TODO
+        // 插入消息
 
         return ResultUtils.get("确认成功", id);
     }
