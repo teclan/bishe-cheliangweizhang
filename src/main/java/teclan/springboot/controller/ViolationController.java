@@ -59,7 +59,7 @@ public class ViolationController {
         }
 
         String id=IdUtils.get();
-        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status) values (?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0);
+        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status,pay,appeal) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0,0,0);
 
         logService.add(LogModule.violationManage, user, String.format("创建违章 车牌:%s",licensePlate), LogStatus.success);
         
@@ -77,7 +77,9 @@ public class ViolationController {
                              @RequestParam(value = "deduction_amount", required = true ,defaultValue = "0.0") Double deductionAmount,
                              @RequestParam(value = "detention_day", required = true,defaultValue = "0") Integer detentionDay,
                              @RequestParam(value = "police", required = true) String police,
-                             @RequestParam(value = "punisher", required = true) String punisher) {
+                             @RequestParam(value = "punisher", required = true) String punisher,
+                             @RequestParam(value = "pay", required = true) String pay,
+                             @RequestParam(value = "appeal", required = true) String appeal) {
     	String user = httpServletRequest.getHeader("user");
 
         if (StringUtils.isNullOrEmpty(id)) {
@@ -151,10 +153,100 @@ public class ViolationController {
 			messageService.add(user,msg );
 
 		}
+		// 状态改为确认，确认状态 0/1/2:未确认/确认/误报
+		jdbcTemplate.update("update violation set `status`=? where id=?",1,id);
 		
         return ResultUtils.get("确认成功", id);
     }
 
+    /**
+     * 上诉
+     * @param httpServletRequest
+     * @param servletResponse
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/appeal", method = RequestMethod.POST)
+    public JSONObject appeal(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+        String user = httpServletRequest.getHeader("user");
+
+        Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
+        String licensePlate = violation.get("license_plate").toString();
+        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
+        String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
+        String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
+
+        Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
+        String owner=vehicleInfo.get("owner").toString();
+
+        logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
+
+        Map data = jdbcTemplate.queryForMap(
+                "select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?",
+                licensePlate);
+
+        if (data.get("code") != null) {
+            messageService.add(data.get("code").toString(),
+                    String.format("您的爱车 %s 违章编号:%s处罚已被撤销，原处罚结果：扣除分数:%s，罚款:%s元，拘留天数：%s 天，您也可以登录 交管12123 查看详情", licensePlate, id,
+                            deductionScore, deductionAmount, detentionDay));
+        }
+
+        // 上诉状态改成 上诉中，上诉状态 0/1/2/3: 未发起/上诉中/通过/驳回
+        jdbcTemplate.update("update violation set `appeal`=? where id=?",1,id);
+
+        return ResultUtils.get("上诉成功", id);
+    }
+
+    /**
+     * 驳回
+     * @param httpServletRequest
+     * @param servletResponse
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/turn", method = RequestMethod.POST)
+    public JSONObject turn(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
+        String user = httpServletRequest.getHeader("user");
+
+        Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
+        String licensePlate = violation.get("license_plate").toString();
+        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
+        String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
+        String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
+
+        Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
+        String owner=vehicleInfo.get("owner").toString();
+
+        if(!"0".equals(deductionScore)){
+            // 扣除用户分数
+            jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0+%s,surplus+%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+        }
+
+        logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
+
+        Map data = jdbcTemplate.queryForMap(
+                "select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?",
+                licensePlate);
+
+        if (data.get("code") != null) {
+            messageService.add(data.get("code").toString(),
+                    String.format("您的爱车 %s 违章编号:%s处罚上诉上诉成功，原处罚结果：扣除分数:%s，罚款:%s元，拘留天数：%s 天，您也可以登录 交管12123 查看详情", licensePlate, id,
+                            deductionScore, deductionAmount, detentionDay));
+        }
+
+        // 如果之前是 申诉中的状态，将申诉状态改成 通过，上诉状态 0/1/2/3: 未发起/上诉中/通过/驳回
+        jdbcTemplate.update("update violation set `appeal`=? where id=?",3,id);
+
+        return ResultUtils.get("确认成功", id);
+    }
+
+    /**
+     * 撤销处罚，用户上诉或管理员自行撤销
+     * @param httpServletRequest
+     * @param servletResponse
+     * @param id
+     * @return
+     */
     @RequestMapping(value = "/cancle", method = RequestMethod.POST)
     public JSONObject cancle(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
     	String user = httpServletRequest.getHeader("user");
@@ -184,6 +276,12 @@ public class ViolationController {
 					String.format("您的爱车 %s 违章编号:%s处罚已被撤销，原处罚结果：扣除分数:%s，罚款:%s元，拘留天数：%s 天，您也可以登录 交管12123 查看详情", licensePlate, id,
 							deductionScore, deductionAmount, detentionDay));
 		}
+
+		// 撤销时，状态改为 误报，确认状态 0/1/2:未确认/确认/误报
+        jdbcTemplate.update("update violation set `status`=? where id=?",2,id);
+		// 如果之前是 申诉中的状态，将申诉状态改成 通过，上诉状态 0/1/2/3: 未发起/上诉中/通过/驳回
+        jdbcTemplate.update("update violation set `appeal`=? where id=?",2,id);
+
         return ResultUtils.get("确认成功", id);
     }
 

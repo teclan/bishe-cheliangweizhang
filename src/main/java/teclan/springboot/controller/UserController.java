@@ -90,7 +90,7 @@ public class UserController {
     public JSONObject logout(ServletRequest servletRequest, String code) {
         jdbcTemplate.update("update user_info set token=null,last_time=null where code=?", code);
         Map<String, Object> map = findByCode(code);
-        logService.add(LogModule.userManage, map.get("id").toString(), "退出系统", LogStatus.success);
+        logService.add(LogModule.userManage, ((Map<Object, Object>)map.get("datas")).get("id").toString(), "退出系统", LogStatus.success);
         return ResultUtils.get("退出成功", null);
     }
 
