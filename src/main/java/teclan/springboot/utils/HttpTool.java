@@ -7,14 +7,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import teclan.springboot.controller.ActiveMQController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.nio.charset.Charset;
 
 public class HttpTool {
-    private  static  final Logger LOGGER = LoggerFactory.getLogger(ActiveMQController.class);
+    private  static  final Logger LOGGER = LoggerFactory.getLogger(HttpTool.class);
 
     public static String readJSONString(HttpServletRequest request) {
         String method = request.getMethod();
