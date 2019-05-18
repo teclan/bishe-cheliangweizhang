@@ -28,6 +28,7 @@ import teclan.springboot.log.LogModule;
 import teclan.springboot.log.LogService;
 import teclan.springboot.log.LogStatus;
 import teclan.springboot.model.User;
+import teclan.springboot.service.RoleService;
 import teclan.springboot.utils.Objects;
 import teclan.springboot.utils.PagesUtils;
 import teclan.springboot.utils.ResultUtils;
@@ -40,9 +41,11 @@ public class UserController {
 
     @Resource
     private JdbcTemplate jdbcTemplate;
-    
     @Resource
     private LogService logService;
+    @Resource
+    private RoleService roleService;
+
 
     @RequestMapping(value = "/findById", method = RequestMethod.GET)
     public Map<String, Object> findById(Long id) {
@@ -130,6 +133,14 @@ public class UserController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password,String role) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+        String user = httpServletRequest.getHeader("user");
+
+       String currentRole =  roleService.getRoleInfo(user);
+       if(!"superadmin".equals(currentRole)){
+           return ResultUtils.get(403,"创建失败", "你不是超级管理员,没有权限创建用户");
+       }
+
+
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where code='%s'", code), Integer.class);
         if (count > 0) {
 //            httpServletResponse.setStatus(403);
@@ -150,11 +161,11 @@ public class UserController {
         jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, role,Constants.SDF.format(new Date()));
         
         Map<String, Object> map = findByCode(code);
-        String user = httpServletRequest.getHeader("user");
+
         
         logService.add(LogModule.userManage, user, String.format("创建用户 id:%s,code:%s,name:%s，role:%s", map.get("id"),map.get("code"),map.get("name"),map.get("role")), LogStatus.success);
         
-        return ResultUtils.get("注册成功", null);
+        return ResultUtils.get("创建成功", null);
     }
 
     @SuppressWarnings("unchecked")
@@ -162,8 +173,14 @@ public class UserController {
     public JSONObject delete(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String id) {
     	
     	String user = httpServletRequest.getHeader("user");
-    	
-    	 Map<String, Object> map =  (Map<String, Object>)findById(Long.valueOf(id)).get("datas");
+
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"superadmin".equals(currentRole)){
+            return ResultUtils.get(403,"删除失败", "你不是超级管理员,没有权限删除用户");
+        }
+
+
+        Map<String, Object> map =  (Map<String, Object>)findById(Long.valueOf(id)).get("datas");
     	 
         jdbcTemplate.update("delete from user_info where id=?", id);
        
