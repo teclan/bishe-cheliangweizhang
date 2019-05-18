@@ -1,7 +1,9 @@
 package teclan.springboot.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import teclan.springboot.filter.CorsInterceptor;
 import teclan.springboot.filter.SessionFilter;
@@ -15,6 +17,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private SessionFilter sessionFilter;
     @Resource
     private CorsInterceptor corsInterceptor;
+    @Value("${static.file.dir}")
+    private String staticFileDir;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -24,6 +28,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(sessionFilter).addPathPatterns("/**");
     }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resource/**").addResourceLocations("file:"+staticFileDir);
+    }
 }
 
 

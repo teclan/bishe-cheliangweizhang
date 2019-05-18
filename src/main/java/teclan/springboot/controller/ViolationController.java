@@ -48,7 +48,9 @@ public class ViolationController {
                              @RequestParam(value = "deduction_score", required = false ,defaultValue = "0") Double deductionScore,
                              @RequestParam(value = "deduction_amount", required = false ,defaultValue = "0.0") Double deductionAmount,
                              @RequestParam(value = "detention_day", required = false,defaultValue = "0") Integer detentionDay,
-                             @RequestParam(value = "police", required = false) String police) {
+                             @RequestParam(value = "police", required = false) String police,
+                             @RequestParam(value = "url", required = false) String url
+                             ) {
 
         String user = httpServletRequest.getHeader("user");
         
@@ -59,7 +61,7 @@ public class ViolationController {
         }
 
         String id=IdUtils.get();
-        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status,pay,appeal) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0,0,0);
+        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status,pay,appeal,url) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0,0,0,url);
 
         logService.add(LogModule.violationManage, user, String.format("创建违章 车牌:%s",licensePlate), LogStatus.success);
         

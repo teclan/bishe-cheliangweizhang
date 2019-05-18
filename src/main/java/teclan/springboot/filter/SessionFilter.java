@@ -31,13 +31,19 @@ public class SessionFilter implements HandlerInterceptor {
 
         HttpServletResponse httpServletResponse =(HttpServletResponse) servletResponse;
 
-        if(StringUtils.isNullOrEmpty(user)){
-            LOGGER.error("\n\n {} , token无效,缺失[user]字段 ...",httpServletRequest.getRequestURI());
+        if(httpServletRequest.getRequestURI().startsWith("/resource")){
+            return true;
+        }else {
+            if(StringUtils.isNullOrEmpty(user)){
+                LOGGER.error("\n\n {} , token无效,缺失[user]字段 ...",httpServletRequest.getRequestURI());
 //            httpServletResponse.setStatus(403);
-            return false;
-        }else{
-            realToken = jdbcTemplate.queryForObject(String.format("select token from user_info where code='%s'",user),String.class);
+                return false;
+            }else{
+                realToken = jdbcTemplate.queryForObject(String.format("select token from user_info where code='%s'",user),String.class);
+            }
+
         }
+
 
 
         if (!"/user/register".equals(httpServletRequest.getRequestURI()) && !"/user/create".equals(httpServletRequest.getRequestURI())&& !"/user/login".equals(httpServletRequest.getRequestURI()) && (token == null || "".equals(token.toString()) || !token.equals(realToken) )) {

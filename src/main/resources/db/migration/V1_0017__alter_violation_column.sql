@@ -1,0 +1,1 @@
+ALTER TABLE violation add `url` varchar(200) comment '违章图片';
