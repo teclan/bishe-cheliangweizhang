@@ -1,0 +1,1 @@
+ALTER TABLE violation_type add `value` int comment '分值';

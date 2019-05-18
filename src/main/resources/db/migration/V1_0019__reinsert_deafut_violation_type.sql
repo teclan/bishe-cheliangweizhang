@@ -1,0 +1,14 @@
+delete from violation_type;
+insert into violation_type (id,type_name,`value`) values (1,'闯红灯',6);
+insert into violation_type (id,type_name,`value`) values (2,'无证驾驶',0);
+insert into violation_type (id,type_name,`value`) values (3,'超载或超员',6);
+insert into violation_type (id,type_name,`value`) values (4,'使用伪造驾驶证',6);
+insert into violation_type (id,type_name,`value`) values (5,'超速行驶',6);
+insert into violation_type (id,type_name,`value`) values (6,'驾驶拼装或报废机动车',12);
+insert into violation_type (id,type_name,`value`) values (7,'记满12分继续驾车',12);
+insert into violation_type (id,type_name,`value`) values (8,'酒驾',3);
+insert into violation_type (id,type_name,`value`) values (9,'醉驾',4);
+insert into violation_type (id,type_name,`value`) values (10,'肇事后逃逸',12);
+insert into violation_type (id,type_name,`value`) values (11,'未礼让行人',2);
+insert into violation_type (id,type_name,`value`) values (12,'驾驶过程手持电话',1);
+insert into violation_type (id,type_name,`value`) values (13,'未系安全带',1);
