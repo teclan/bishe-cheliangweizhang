@@ -13,6 +13,8 @@ import teclan.springboot.log.LogModule;
 import teclan.springboot.log.LogService;
 import teclan.springboot.log.LogStatus;
 import teclan.springboot.msg.MessageService;
+import teclan.springboot.service.RoleService;
+import teclan.springboot.service.ViolationTypeService;
 import teclan.springboot.utils.*;
 
 import javax.annotation.Resource;
@@ -38,6 +40,9 @@ public class ViolationController {
     private LogService logService;
     @Resource
     private MessageService messageService;
+    @Resource
+    private RoleService roleService;
+
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse,
@@ -53,6 +58,10 @@ public class ViolationController {
                              ) {
 
         String user = httpServletRequest.getHeader("user");
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"police".equals(currentRole)){
+            return ResultUtils.get(403,"创建失败", "你不是普通,没有权限创建");
+        }
         
         if (StringUtils.isNullOrEmpty(licensePlate)) {
 //            httpServletResponse.setStatus(500);
@@ -61,7 +70,7 @@ public class ViolationController {
         }
 
         String id=IdUtils.get();
-        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status,pay,appeal,url) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0,0,0,url);
+        jdbcTemplate.update("insert into violation (id,license_plate,type,zone,cause,deduction_score,deduction_amount,detention_day,police,create_time,status,pay,appeal,url,flow_node_role) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", id, licensePlate,type,zone,cause,deductionScore,deductionAmount,detentionDay,police,new Date(),0,0,0,url,"police");
 
         logService.add(LogModule.violationManage, user, String.format("创建违章 车牌:%s",licensePlate), LogStatus.success);
         
@@ -83,6 +92,10 @@ public class ViolationController {
                              @RequestParam(value = "pay", required = true) String pay,
                              @RequestParam(value = "appeal", required = true) String appeal) {
     	String user = httpServletRequest.getHeader("user");
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"police".equals(currentRole)){
+            return ResultUtils.get(403,"创建失败", "你不是普通警察,没有权限创建");
+        }
 
         if (StringUtils.isNullOrEmpty(id)) {
 //            httpServletResponse.setStatus(500);
@@ -106,6 +119,11 @@ public class ViolationController {
     public JSONObject delete(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
     	String user = httpServletRequest.getHeader("user");
     	Map<String,Object> map = jdbcTemplate.queryForMap("select * from violation where id=?",id);
+
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"captain".equals(currentRole)){
+            return ResultUtils.get(403,"删除失败", "你不是交警队长,没有权限删除");
+        }
     	
     	jdbcTemplate.update("delete from violation where id=?", id);
         
@@ -126,38 +144,55 @@ public class ViolationController {
         return ResultUtils.get("查询成功", map);
     }
 
+
+    @Resource
+    private ViolationTypeService violationTypeService;
+
     @RequestMapping(value = "/confirm", method = RequestMethod.POST)
     public JSONObject confirm(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
     	String user = httpServletRequest.getHeader("user");
-    	
+
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"admin".equals(currentRole) && !"captain".equals(currentRole)){
+            return ResultUtils.get(403,"审核失败", "你不是管理员或交警队长,没有权限审核");
+        }
+
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
-        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
+        String deductionScore =violationTypeService.get(violation.get("type").toString());
         String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
         String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
 
         Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
         String owner=vehicleInfo.get("owner").toString();
 
-        if(!"0".equals(deductionScore)){
-            // 扣除用户分数
-            jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0-%s,surplus-%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+        if("admin".equals(currentRole)){
+            if(!"0".equals(deductionScore)){
+                // 扣除用户分数
+                jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0-%s,surplus-%s)  WHERE id =%s",deductionScore,deductionScore,owner));
+            }
+
+            logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
+
+            // 修改流程节点
+            jdbcTemplate.update("update violation set `flow_node_role`=? where id=?","captain",id);
+
+        }else {
+
+            Map data = jdbcTemplate.queryForMap(
+                    "select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?",
+                    licensePlate);
+
+            if (data.get("code") != null) {
+                String msg=String.format("您的爱车%s违章编号%s处罚结果已生效，处罚结果: 扣除分数：%s，罚款： %s元，拘留天数：%s 天，请及时到交警中心处理，您也可以登录 交管12123 查看详情 ", licensePlate,id,deductionScore,deductionAmount,detentionDay);
+                messageService.add(user,msg );
+
+            }
+
+            // 状态改为确认，确认状态 0/1/2:未确认/确认/误报,流程节点为普通用户
+            jdbcTemplate.update("update violation set `status`=?,`flow_node_role`=? where id=?",1,"general",id);
+
         }
-
-        logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
-
-        Map data = jdbcTemplate.queryForMap(
-				"select a.*,b.code,b.name,b.phone,b.id from vehicle_info a LEFT JOIN user_info b on a.owner=b.id where license_plate=?",
-				licensePlate);
-
-		if (data.get("code") != null) {
-			String msg=String.format("您的爱车%s违章编号%s处罚结果已生效，处罚结果: 扣除分数：%s，罚款： %s元，拘留天数：%s 天，请及时到交警中心处理，您也可以登录 交管12123 查看详情 ", licensePlate,id,deductionScore,deductionAmount,detentionDay);
-			messageService.add(user,msg );
-
-		}
-		// 状态改为确认，确认状态 0/1/2:未确认/确认/误报
-		jdbcTemplate.update("update violation set `status`=? where id=?",1,id);
-		
         return ResultUtils.get("确认成功", id);
     }
 
@@ -210,6 +245,12 @@ public class ViolationController {
     public JSONObject turn(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
         String user = httpServletRequest.getHeader("user");
 
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"admin".equals(currentRole) && !"captain".equals(currentRole)){
+            return ResultUtils.get(403,"审核失败", "你不是管理员或交警队长,没有权限审核");
+        }
+
+
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
         String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
@@ -252,10 +293,16 @@ public class ViolationController {
     @RequestMapping(value = "/cancle", method = RequestMethod.POST)
     public JSONObject cancle(HttpServletRequest httpServletRequest, ServletResponse servletResponse,  @RequestParam(value = "id", required = true)String id) {
     	String user = httpServletRequest.getHeader("user");
-    	
+
+        String currentRole =  roleService.getRoleInfo(user);
+        if(!"admin".equals(currentRole) && !"captain".equals(currentRole)){
+            return ResultUtils.get(403,"审核失败", "你不是管理员或交警队长,没有权限审核");
+        }
+
+
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
-        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();
+        String deductionScore =violationTypeService.get(violation.get("type").toString());;
         String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
         String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
         
@@ -263,7 +310,7 @@ public class ViolationController {
         String owner=vehicleInfo.get("owner").toString();
 
         if(!"0".equals(deductionScore)){
-            // 扣除用户分数
+            // 反扣除用户分数
             jdbcTemplate.update(String.format("update user_info set surplus=if(surplus is null,0+%s,surplus+%s)  WHERE id =%s",deductionScore,deductionScore,owner));
         }
 
@@ -288,7 +335,7 @@ public class ViolationController {
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause,String owner,@RequestParam(value = "orderBy" ,required = true,defaultValue = "create_time") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
+    public JSONObject page(HttpServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause,String owner,String ownername,@RequestParam(value = "orderBy" ,required = true,defaultValue = "create_time") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
         String countSql = "SELECT count(*) FROM violation a " +
                 "left join violation_type b ON a.type=b.id " +
                 "left join vehicle_info c on a.license_plate=c.license_plate " +
@@ -305,6 +352,11 @@ public class ViolationController {
         }
 
         if (!StringUtils.isNullOrEmpty(licensePlate)) {
+            sb.append(" and d.name LIKE '%"+ownername+"%' ");
+        }
+
+
+        if (!StringUtils.isNullOrEmpty(licensePlate)) {
             sb.append(" and a.license_plate LIKE '%"+licensePlate+"%' ");
         }
         if (!StringUtils.isNullOrEmpty(type)) {
@@ -316,6 +368,14 @@ public class ViolationController {
         if (!StringUtils.isNullOrEmpty(cause)) {
             sb.append(" and a.cause LIKE '%"+cause+"%' ");
         }
+
+        String user = servletRequest.getHeader("user");
+        String currentRole =  roleService.getRoleInfo(user);
+
+        if("general".equals(currentRole)){
+            sb.append(" and a.flow_node_role = 'general' ");
+        }
+
 
         int totals = jdbcTemplate.queryForObject(countSql+sb.toString(), Integer.class);
 

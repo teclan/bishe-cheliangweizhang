@@ -1,0 +1,1 @@
+ALTER TABLE violation add `flow_node_role` varchar(32) comment '流程节点角色';
