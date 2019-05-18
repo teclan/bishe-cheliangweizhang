@@ -6,3 +6,5 @@ datasource:
 
 server:
   port: 8080
+
+static.file.dir: E:/static-file/
