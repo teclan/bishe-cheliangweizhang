@@ -126,9 +126,9 @@ public class UserController {
     }
 
 
-    // 默认创建管理员
+    // 超级管理员创建用户
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password) {
+    public JSONObject create(HttpServletRequest httpServletRequest, ServletResponse servletResponse, String code, String name, @RequestParam("id_card") String idCard, String phone, String password,String role) {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
         int count = jdbcTemplate.queryForObject(String.format("select count(*) from user_info where code='%s'", code), Integer.class);
         if (count > 0) {
@@ -147,7 +147,7 @@ public class UserController {
 //            httpServletResponse.setStatus(403);
             return ResultUtils.get("注册失败，手机号已经被注册", null);
         }
-        jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
+        jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, role,Constants.SDF.format(new Date()));
         
         Map<String, Object> map = findByCode(code);
         String user = httpServletRequest.getHeader("user");

@@ -1,0 +1,1 @@
+ALTER TABLE user_info CHANGE role role varchar(32) comment '角色，superadmin/admin/general/police/captain:超级管理员/管理员/普通用户/普通警察/交警队长';
