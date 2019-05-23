@@ -175,7 +175,7 @@ public class ViolationController {
             logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
 
             // 修改流程节点
-            jdbcTemplate.update("update violation set `flow_node_role`=? where id=?","captain",id);
+            jdbcTemplate.update("update violation set `flow_node_role`=? where id=?","admin",id);
 
         }else {
 
@@ -190,7 +190,7 @@ public class ViolationController {
             }
 
             // 状态改为确认，确认状态 0/1/2:未确认/确认/误报,流程节点为普通用户
-            jdbcTemplate.update("update violation set `status`=?,`flow_node_role`=? where id=?",1,"general",id);
+            jdbcTemplate.update("update violation set `status`=?,`flow_node_role`=? where id=?",1,"captain",id);
 
         }
         return ResultUtils.get("确认成功", id);
@@ -372,8 +372,9 @@ public class ViolationController {
         String user = servletRequest.getHeader("user");
         String currentRole =  roleService.getRoleInfo(user);
 
+        // 普通用户查询的话，只能查询处于流程节点为 captain 的数据
         if("general".equals(currentRole)){
-            sb.append(" and a.flow_node_role = 'general' ");
+            sb.append(" and a.flow_node_role = 'captain' ");
         }
 
 
