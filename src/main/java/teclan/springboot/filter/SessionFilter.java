@@ -29,6 +29,8 @@ public class SessionFilter implements HandlerInterceptor {
         String token =httpServletRequest.getHeader("token");
         String realToken="";
 
+        LOGGER.info("\n\n===== 进入请求 {},  user={}, token={}",httpServletRequest.getRequestURI(),user,token);
+
         HttpServletResponse httpServletResponse =(HttpServletResponse) servletResponse;
 
         if(httpServletRequest.getRequestURI().startsWith("/resource")){

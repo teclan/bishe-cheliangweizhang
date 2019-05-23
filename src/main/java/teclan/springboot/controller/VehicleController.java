@@ -112,10 +112,10 @@ public class VehicleController {
     @RequestMapping(value = "/page", method = RequestMethod.POST)
     public JSONObject page(ServletRequest servletRequest, ServletResponse servletResponse, String keyword, @RequestParam(value = "orderBy" ,required = true,defaultValue = "register_at") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
         String countSql = "SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE 1=1";
-        String querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE 1=1 ";
+        String querySql = "SELECT a.*,b.code,b.name,b.id_card,b.`role`,b.phone FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE 1=1 ";
         if (!StringUtils.isNullOrEmpty(keyword)) {
             countSql = "SELECT count(*) FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE '%" + keyword + "%'";
-            querySql = "SELECT * FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE '%" + keyword + "%' ";
+            querySql = "SELECT a.*,b.code,b.name,b.id_card,b.`role`,b.phone FROM vehicle_info a LEFT JOIN user_info b ON a.owner=b.id WHERE a.license_plate LIKE '%" + keyword + "%' ";
 
         }
         int totals = jdbcTemplate.queryForObject(countSql, Integer.class);
