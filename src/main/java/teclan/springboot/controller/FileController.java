@@ -45,7 +45,7 @@ public class FileController {
         if (file.isEmpty()) {
             LOGGER.error("{} 上传文件失败,文件为空", user);
             logService.add(LogModule.violationManage, user, String.format("添加违章图片信息"), LogStatus.fail);
-            return ResultUtils.get(500, "删除成功", "");
+            return ResultUtils.get(500, "上传失败", "");
 
 
         }
