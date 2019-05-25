@@ -22,6 +22,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -388,6 +389,16 @@ public class ViolationController {
             return ResultUtils.get("查询成功", new ArrayList<>(), PagesUtils.getPageInfo(currentPage, pageSize, totals));
         } else {
             List<Map<String, Object>> datas = jdbcTemplate.queryForList(querySql+sb.toString()+" order by a."+orderBy+" "+sort +" limit "+ PagesUtils.getOffset(currentPage, pageSize)+","+pageSize);
+
+
+            SimpleDateFormat sdf = new  SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+            for(Map<String,Object> map:datas){
+                map.put("create_time",sdf.format(map.get("create_time")));
+                map.put("stastr",!map.get("flow_node_role").equals("police"));
+            }
+
+
             return ResultUtils.get("查询成功", datas, PagesUtils.getPageInfo(currentPage, pageSize, totals));
         }
     }
