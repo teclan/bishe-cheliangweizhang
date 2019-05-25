@@ -41,7 +41,7 @@ public class MessageController {
 	                             @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage,
 	                             @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize ) {
 	        
-	        String queryForCount="select count(*) from message where 1=1 %s";
+	        String queryForCount="select count(*) from message a left join user_info b on a.user_code=b.code where 1=1 %s";
 	        String querySql = "select a.*,b.name from message a left join user_info b on a.user_code=b.code  where 1=1 %s order by a.%s %s limit %s,%s";
 	        
 	        StringBuilder sb =new StringBuilder();
