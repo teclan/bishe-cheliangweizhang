@@ -41,7 +41,7 @@ public class LogController {
                              @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize ) {
         
         String queryForCount="select count(*) from logs where 1=1 %s";
-        String querySql = "select * from logs where 1=1 %s order by %s %s limit %s,%s";
+        String querySql = "select a.*,b.name from logs a left join user_info b on a.user_code=b.code where 1=1 %s order by a.%s %s limit %s,%s";
         
         StringBuilder sb =new StringBuilder();
         
@@ -60,6 +60,7 @@ public class LogController {
         int totals = jdbcTemplate.queryForObject(String.format(queryForCount, sb.toString()),Integer.class);
         
         List<Map<String,Object>> maps = jdbcTemplate.queryForList(String.format(querySql, sb.toString(),orderBy,sort,PagesUtils.getOffset(currentPage, pageSize),pageSize));
+
 
         return ResultUtils.get("查询成功", maps, PagesUtils.getPageInfo(currentPage, pageSize, totals));
     }
