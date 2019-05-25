@@ -377,6 +377,10 @@ public class ViolationController {
             sb.append(" and a.flow_node_role = 'captain' ");
         }
 
+        if("captain".equals(currentRole)){
+            sb.append(" and a.flow_node_role = 'admin' ");
+        }
+
 
         int totals = jdbcTemplate.queryForObject(countSql+sb.toString(), Integer.class);
 
