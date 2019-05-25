@@ -67,6 +67,7 @@ public class LogController {
 
         for(Map<String,Object> map:maps){
             map.put("create_time",sdf.format(map.get("create_time")));
+            map.put("stastr",map.get("status").equals("1"));
         }
 
         return ResultUtils.get("查询成功", maps, PagesUtils.getPageInfo(currentPage, pageSize, totals));
