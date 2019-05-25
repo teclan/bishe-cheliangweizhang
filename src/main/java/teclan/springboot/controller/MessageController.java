@@ -1,5 +1,6 @@
 package teclan.springboot.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -41,20 +42,20 @@ public class MessageController {
 	                             @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize ) {
 	        
 	        String queryForCount="select count(*) from message where 1=1 %s";
-	        String querySql = "select * from message where 1=1 %s order by %s %s limit %s,%s";
+	        String querySql = "select a.*,b.name from message a left join user_info b on a.user_code=b.code  where 1=1 %s order by a.%s %s limit %s,%s";
 	        
 	        StringBuilder sb =new StringBuilder();
 	        
 	        if(!StringUtils.isNullOrEmpty(userId)) {
-	        	sb.append(String.format(" and user_id = %s ", userId));
+	        	sb.append(String.format(" and b.user_id = %s ", userId));
 	        }
 	        
 	        if(!StringUtils.isNullOrEmpty(keyword)) {
-	        	sb.append(" and keyword like '%").append(keyword).append("%' ");
+	        	sb.append(" and a.description like '%").append(keyword).append("%' ");
 	        }
 	        
 	        if(!StringUtils.isNullOrEmpty(read)) {
-	        	sb.append(String.format(" and read = %s ", read));
+	        	sb.append(String.format(" and a.read = %s ", read));
 	        }
 	        
 	        
@@ -62,7 +63,13 @@ public class MessageController {
 	        
 	        List<Map<String,Object>> maps = jdbcTemplate.queryForList(String.format(querySql, sb.toString(),orderBy,sort,PagesUtils.getOffset(currentPage, pageSize),pageSize));
 
-	        return ResultUtils.get("查询成功", maps, PagesUtils.getPageInfo(currentPage, pageSize, totals));
+			SimpleDateFormat sdf = new  SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+			for(Map<String,Object> map:maps){
+				map.put("create_time",sdf.format(map.get("create_time")));
+			}
+
+			return ResultUtils.get("查询成功", maps, PagesUtils.getPageInfo(currentPage, pageSize, totals));
 	    }
 	    
 

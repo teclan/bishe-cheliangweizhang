@@ -47,7 +47,7 @@ public class LogController {
         StringBuilder sb =new StringBuilder();
         
         if(!StringUtils.isNullOrEmpty(userId)) {
-        	sb.append(String.format(" and user_id = %s ", userId));
+        	sb.append(String.format(" and b.user_id = %s ", userId));
         }
         
         if(!StringUtils.isNullOrEmpty(module)) {
@@ -55,7 +55,7 @@ public class LogController {
         }
         
         if(!StringUtils.isNullOrEmpty(keyword)) {
-        	sb.append(" and keyword like '%").append(keyword).append("%' ");
+        	sb.append(" and a.description like '%").append(keyword).append("%' ");
         }
         
         int totals = jdbcTemplate.queryForObject(String.format(queryForCount, sb.toString()),Integer.class);
