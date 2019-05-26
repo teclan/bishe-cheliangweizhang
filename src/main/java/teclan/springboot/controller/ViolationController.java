@@ -303,10 +303,10 @@ public class ViolationController {
 
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
-        String deductionScore =violationTypeService.get(violation.get("type").toString());;
+        String deductionScore =violation.get("deduction_score")==null?"0": violation.get("deduction_score").toString();;
         String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
         String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
-        
+
         Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
         String owner=vehicleInfo.get("owner").toString();
 
