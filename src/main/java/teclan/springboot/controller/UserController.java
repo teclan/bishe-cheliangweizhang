@@ -78,12 +78,12 @@ public class UserController {
 			Map<String,Object> datas =  ( Map<String,Object>)findByCode(code).get("datas");
             datas.put("code", code);
             
-            logService.add(LogModule.userManage, datas.get("id").toString(), "登录系统", LogStatus.success);
+            logService.add(LogModule.userManage, datas.get("code").toString(), "登录系统", LogStatus.success);
             
             return ResultUtils.get("登录成功",datas);
         } else {
 //            httpServletResponse.setStatus(401);
-        	 logService.add(LogModule.userManage, map.get("id").toString(), "登录系统", LogStatus.fail);
+        	 logService.add(LogModule.userManage, map.get("code").toString(), "登录系统", LogStatus.fail);
             return ResultUtils.get(403,"登录失败,密码错误", null);
         }
     }
@@ -93,7 +93,7 @@ public class UserController {
     public JSONObject logout(ServletRequest servletRequest, String code) {
         jdbcTemplate.update("update user_info set token=null,last_time=null where code=?", code);
         Map<String, Object> map = findByCode(code);
-        logService.add(LogModule.userManage, ((Map<Object, Object>)map.get("datas")).get("id").toString(), "退出系统", LogStatus.success);
+        logService.add(LogModule.userManage, ((Map<Object, Object>)map.get("datas")).get("code").toString(), "退出系统", LogStatus.success);
         return ResultUtils.get("退出成功", null);
     }
 

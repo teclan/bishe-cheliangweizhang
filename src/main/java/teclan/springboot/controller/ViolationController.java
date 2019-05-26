@@ -395,7 +395,7 @@ public class ViolationController {
 
             for(Map<String,Object> map:datas){
                 map.put("create_time",sdf.format(map.get("create_time")));
-                map.put("stastr",!map.get("flow_node_role").equals("police"));
+                map.put("stastr",!"police".equals(map.get("flow_node_role")));
             }
 
 
