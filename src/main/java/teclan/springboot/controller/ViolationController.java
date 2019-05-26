@@ -51,9 +51,9 @@ public class ViolationController {
                              @RequestParam(value = "type", required = true) String type,
                              @RequestParam(value = "zone", required = true) String zone,
                              @RequestParam(value = "cause", required = false) String cause,
-                             @RequestParam(value = "deduction_score", required = false ,defaultValue = "0") Double deductionScore,
-                             @RequestParam(value = "deduction_amount", required = false ,defaultValue = "0.0") Double deductionAmount,
-                             @RequestParam(value = "detention_day", required = false,defaultValue = "0") Integer detentionDay,
+                             @RequestParam(value = "deduction_score", required = false ,defaultValue = "") String deductionScore,
+                             @RequestParam(value = "deduction_amount", required = false ,defaultValue = "") String deductionAmount,
+                             @RequestParam(value = "detention_day", required = false,defaultValue = "") String detentionDay,
                              @RequestParam(value = "police", required = false) String police,
                              @RequestParam(value = "url", required = false) String url
                              ) {
@@ -85,9 +85,9 @@ public class ViolationController {
                              @RequestParam(value = "type", required = true) String type,
                              @RequestParam(value = "zone", required = true) String zone,
                              @RequestParam(value = "cause", required = false) String cause,
-                             @RequestParam(value = "deduction_score", required = true ,defaultValue = "0") Double deductionScore,
-                             @RequestParam(value = "deduction_amount", required = true ,defaultValue = "0.0") Double deductionAmount,
-                             @RequestParam(value = "detention_day", required = true,defaultValue = "0") Integer detentionDay,
+                             @RequestParam(value = "deduction_score", required = true ,defaultValue = "") String deductionScore,
+                             @RequestParam(value = "deduction_amount", required = true ,defaultValue = "") String deductionAmount,
+                             @RequestParam(value = "detention_day", required = true,defaultValue = "") String detentionDay,
                              @RequestParam(value = "police", required = true) String police,
                              @RequestParam(value = "punisher", required = true) String punisher,
                              @RequestParam(value = "pay", required = true) String pay,
@@ -160,10 +160,10 @@ public class ViolationController {
 
         Map<String,Object> violation = jdbcTemplate.queryForMap("select * from violation where id=?",id);
         String licensePlate = violation.get("license_plate").toString();
-        String deductionScore =violationTypeService.get(violation.get("type").toString());
-        String deductionAmount =violation.get("deduction_amount")==null?"0": violation.get("deduction_amount").toString();
-        String detentionDay =violation.get("detention_day")==null?"0": violation.get("detention_day").toString();
-
+        Map<String,Object> type = violationTypeService.get(violation.get("type").toString());
+        String deductionScore ="".equals(violation.get("deduction_score").toString().trim())?type.get("deduction_score").toString().trim():violation.get("deduction_score").toString().trim();
+        String deductionAmount ="".equals(violation.get("deduction_amount").toString().trim())?type.get("deduction_amount").toString().trim():violation.get("deduction_amount").toString().trim();
+        String detentionDay ="".equals(violation.get("detention_day").toString().trim())?type.get("detention_day").toString().trim():violation.get("detention_day").toString().trim();
         Map<String,Object> vehicleInfo = jdbcTemplate.queryForMap("select * from vehicle_info where license_plate=?",licensePlate);
         String owner=vehicleInfo.get("owner").toString();
 
@@ -176,7 +176,7 @@ public class ViolationController {
             logService.add(LogModule.violationManage, user, String.format("确认处理违章结果 车牌:%s",licensePlate), LogStatus.success);
 
             // 修改流程节点
-            jdbcTemplate.update("update violation set `flow_node_role`=? where id=?","admin",id);
+            jdbcTemplate.update("update violation set deduction_score=?,deduction_amount=?,detention_day=?,flow_node_role=? where id=?",deductionScore,deductionAmount,detentionDay,"admin",id);
 
         }else {
 

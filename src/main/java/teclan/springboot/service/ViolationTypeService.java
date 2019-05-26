@@ -12,8 +12,8 @@ public class ViolationTypeService {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    public String get(String id){
-        Map<String,Object> map = jdbcTemplate.queryForMap("select `value` from violation_type where id=?",id);
-        return map.get("value").toString();
+    public  Map<String,Object> get(String id){
+        Map<String,Object> map = jdbcTemplate.queryForMap("select deduction_score,deduction_amount,detention_day from violation_type where id=?",id);
+        return map;
     }
 }
