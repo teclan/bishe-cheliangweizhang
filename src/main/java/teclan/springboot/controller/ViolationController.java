@@ -336,7 +336,7 @@ public class ViolationController {
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public JSONObject page(HttpServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause,String owner,String ownername,@RequestParam(value = "orderBy" ,required = true,defaultValue = "create_time") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
+    public JSONObject page(HttpServletRequest servletRequest, ServletResponse servletResponse, String licensePlate, String type, String zone, String cause,String owner,String name,@RequestParam(value = "orderBy" ,required = true,defaultValue = "create_time") String orderBy, @RequestParam(value = "sort" ,required = true,defaultValue = "DESC")String sort, @RequestParam(value = "currentPage" ,required = true,defaultValue = "1")int currentPage, @RequestParam(value = "pageSize" ,required = true,defaultValue = "20")int pageSize) {
         String countSql = "SELECT count(*) FROM violation a " +
                 "left join violation_type b ON a.type=b.id " +
                 "left join vehicle_info c on a.license_plate=c.license_plate " +
@@ -352,8 +352,8 @@ public class ViolationController {
             sb.append(" and c.owner= "+owner);
         }
 
-        if (!StringUtils.isNullOrEmpty(licensePlate)) {
-            sb.append(" and d.name LIKE '%"+ownername+"%' ");
+        if (!StringUtils.isNullOrEmpty(name)) {
+            sb.append(" and d.name LIKE '%"+name+"%' ");
         }
 
 
