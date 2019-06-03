@@ -50,7 +50,7 @@ public class ViolationController {
                              @RequestParam(value = "license_plate", required = true) String licensePlate,
                              @RequestParam(value = "type", required = true) String type,
                              @RequestParam(value = "zone", required = true) String zone,
-                             @RequestParam(value = "cause", required = false) String cause,
+                             @RequestParam(value = "cause", required = true) String cause,
                              @RequestParam(value = "deduction_score", required = false ,defaultValue = "") String deductionScore,
                              @RequestParam(value = "deduction_amount", required = false ,defaultValue = "") String deductionAmount,
                              @RequestParam(value = "detention_day", required = false,defaultValue = "") String detentionDay,
@@ -61,7 +61,7 @@ public class ViolationController {
         String user = httpServletRequest.getHeader("user");
         String currentRole =  roleService.getRoleInfo(user);
         if(!"police".equals(currentRole)){
-            return ResultUtils.get(403,"创建失败", "你不是普通,没有权限创建");
+            return ResultUtils.get(403,"创建失败", "你不是普通警察,没有权限创建");
         }
         
         if (StringUtils.isNullOrEmpty(licensePlate)) {
