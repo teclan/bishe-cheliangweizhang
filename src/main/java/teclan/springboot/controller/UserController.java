@@ -123,7 +123,7 @@ public class UserController {
         jdbcTemplate.update("insert into user_info (code,name,id_card,phone,password,role,create_time) values (?,?,?,?,?,?,?)", code, name, idCard, phone,password, "general",Constants.SDF.format(new Date()));
         
         Map<String, Object> map = findByCode(code);
-        logService.add(LogModule.userManage, map.get("id").toString(), "注册成为新用户", LogStatus.success);
+        logService.add(LogModule.userManage, map.get("code").toString(), "注册成为新用户", LogStatus.success);
         
         return ResultUtils.get("注册成功", null);
     }

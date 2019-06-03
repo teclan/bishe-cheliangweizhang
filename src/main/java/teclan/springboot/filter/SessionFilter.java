@@ -36,12 +36,16 @@ public class SessionFilter implements HandlerInterceptor {
         if(httpServletRequest.getRequestURI().startsWith("/resource")){
             return true;
         }else {
-            if(StringUtils.isNullOrEmpty(user)){
+            if(StringUtils.isNullOrEmpty(user)  && !"/user/register".equals(httpServletRequest.getRequestURI()) && !"/user/create".equals(httpServletRequest.getRequestURI())&& !"/user/login".equals(httpServletRequest.getRequestURI())){
                 LOGGER.error("\n\n {} , token无效,缺失[user]字段 ...",httpServletRequest.getRequestURI());
 //            httpServletResponse.setStatus(403);
                 return false;
             }else{
-                realToken = jdbcTemplate.queryForObject(String.format("select token from user_info where code='%s'",user),String.class);
+                try{
+                    realToken = jdbcTemplate.queryForObject(String.format("select token from user_info where code='%s'",user),String.class);
+                }catch (Exception e){
+                    //LOGGER.error(e.getMessage(),e);
+                }
             }
 
         }
