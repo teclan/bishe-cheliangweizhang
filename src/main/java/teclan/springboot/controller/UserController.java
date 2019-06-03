@@ -237,4 +237,12 @@ public class UserController {
         return ResultUtils.get("修改成功", null);
     }
 
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    public JSONObject findAll(ServletRequest servletRequest, ServletResponse servletResponse, String code,String password) {
+
+       List<Map<String,Object>>  datas = jdbcTemplate.queryForList("select id,code,name,id_card,phone from user_info");
+
+        return ResultUtils.get("修改成功", datas);
+    }
+
 }
